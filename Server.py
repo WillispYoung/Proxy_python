@@ -1,8 +1,10 @@
 import socket
 import threading
+from Modifier import *
 
 proxy_address = ("localhost", 3128)
-server_address = ("localhost", 4129)
+server_address = ("localhost", 33333)
+key_map = load_map("map.txt")
 
 
 def get_proxy_connection():
@@ -15,6 +17,7 @@ def read_client(client, proxy):
     while True:
         try:
             msg = client.recv(4096)
+            # msg = decrypt(msg, key_map)
             proxy.send(msg)
         except socket.error:
             break
@@ -26,6 +29,8 @@ def read_proxy(client, proxy):
     while True:
         try:
             msg = proxy.recv(4096)
+            # msg = encrypt(msg, key_map)
+            print(msg)
             client.send(msg)
         except socket.error:
             break
