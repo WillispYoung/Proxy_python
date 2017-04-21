@@ -30,7 +30,7 @@ def read_proxy(client, proxy):
         try:
             msg = proxy.recv(4096)
             # msg = encrypt(msg, key_map)
-            print(msg)
+            # print(msg)
             client.send(msg)
         except socket.error:
             break

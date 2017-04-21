@@ -3,11 +3,11 @@ import select
 import threading
 from Modifier import *
 
-server_address = ("47.88.31.13", 33333)
+server_address = ("localhost", 33333)
 key_map = load_map("map.txt")
 
 
-def get_server_socket(user):
+def get_server_socket():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.connect(server_address)
     return server
@@ -17,6 +17,7 @@ def read_user(user, server):
     while True:
         try:
             msg = user.recv(4096)
+            print(msg)
             # msg = encrypt(msg, key_map)
             server.send(msg)
         except socket.error:
@@ -28,9 +29,8 @@ def read_user(user, server):
 def read_server(user, server):
     while True:
         try:
-            msg = server.recv(1024)
+            msg = server.recv(4096)
             # msg = decrypt(msg, key_map)
-            print(msg)
             user.send(msg)
         except socket.error:
             break
@@ -39,7 +39,7 @@ def read_server(user, server):
 
 
 def handle_user(user):
-    server = get_server_socket(user)
+    server = get_server_socket()
     threading.Thread(target=read_user, args=(user, server))
     threading.Thread(target=read_server, args=(user, server))
 
