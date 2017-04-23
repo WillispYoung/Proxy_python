@@ -2,8 +2,8 @@ import socket
 import threading
 from Modifier import *
 
-proxy_address = ("localhost", 3128)
-server_address = ("localhost", 33333)
+proxy_address = ("", 3128)
+server_address = ("", 33333)
 key_map = load_map("map.txt")
 
 

@@ -45,7 +45,7 @@ def handle_user(user):
 
 
 a_user = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-a_user.bind(("localhost", 22222))
+a_user.bind(("", 22222))
 a_user.listen(20)
 
 listen_list = [a_user]
