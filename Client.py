@@ -1,9 +1,10 @@
+import sys
 import socket
 import select
 import threading
 from Modifier import *
 
-server_address = ("localhost", 33333)
+server_address = (sys.argv[0], sys.argv[1])
 key_map = load_map("map.txt")
 
 
