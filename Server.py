@@ -17,7 +17,7 @@ def read_client(client, proxy):
     while True:
         try:
             msg = client.recv(4096)
-            # msg = decrypt(msg, key_map)
+            msg = decrypt(msg, key_map)
             proxy.send(msg)
         except socket.error:
             break
@@ -29,8 +29,7 @@ def read_proxy(client, proxy):
     while True:
         try:
             msg = proxy.recv(4096)
-            # msg = encrypt(msg, key_map)
-            # print(msg)
+            msg = encrypt(msg, key_map)
             client.send(msg)
         except socket.error:
             break
@@ -47,6 +46,7 @@ def handle_client(client):
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(server_address)
 server.listen(20)
+print("server listening", server_address)
 
 while True:
     (client, addr) = server.accept()
