@@ -67,6 +67,7 @@ while True:
         if req == control_socket:
             s, addr = control_socket.accept()
             msg = s.recv(256)
+            msg = str(msg)
             # command: add#12345 --> listen on port 12345
             command = msg.split('#')
             if command[0] == "add":
