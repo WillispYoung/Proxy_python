@@ -51,7 +51,7 @@ def handle_user(user):
 
 
 control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-control_socket.bind((""), 22222)
+control_socket.bind(("", 22222))
 control_socket.listen(20)
 
 # a_user = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
