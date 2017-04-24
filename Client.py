@@ -77,6 +77,7 @@ while True:
                     listen_socket = add_listen_port(port)
                     listen_list.append(listen_socket)
                     s.close()
+                    print("add port", port, "succeed")
                 except socket.error:
                     print("add port", port, "failed")
         else:
