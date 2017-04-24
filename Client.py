@@ -55,11 +55,11 @@ control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 control_socket.bind(("", 22222))
 control_socket.listen(20)
 
-# a_user = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# a_user.bind(("", 22222))
-# a_user.listen(20)
+a_user = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+a_user.bind(("", 12345))
+a_user.listen(20)
 
-listen_list = [control_socket]
+listen_list = [control_socket, a_user]
 
 while True:
     read_list, write_list, err_list = select.select(listen_list, [], [])
