@@ -7,6 +7,7 @@ from Modifier import *
 server_address = (sys.argv[1], eval(sys.argv[2]))
 key_map = load_map("map.txt")
 
+
 def get_server_socket():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.connect(server_address)
@@ -67,19 +68,7 @@ while True:
         if req == control_socket:
             s, addr = control_socket.accept()
             msg = s.recv(256)
-            msg = str(msg)
-            # command: add#12345 --> listen on port 12345
-            command = msg.split('#')
-            if command[0] == "add":
-                port = 0
-                try:
-                    port = eval(command[1])
-                    listen_socket = add_listen_port(port)
-                    listen_list.append(listen_socket)
-                    s.close()
-                    print("add port", port, "succeed")
-                except socket.error:
-                    print("add port", port, "failed")
+            print(msg, type(msg), str(msg))
         else:
             (user, address) = req.accept()
             handle_user(user)
