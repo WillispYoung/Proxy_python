@@ -68,7 +68,16 @@ while True:
         if req == control_socket:
             s, addr = control_socket.accept()
             msg = s.recv(256)
-            print(msg, type(msg), str(msg))
+            msg = msg.decode('utf-8')
+            command = msg.split('#')
+            if command[0] == 'add':
+                try:
+                    port = eval(command[1])
+                    listen_socket = add_listen_port(port)
+                    listen_list.append(listen_socket)
+                    print("add listen port", port, "succeed")
+                except socket.error:
+                    print("add listen port", port, "failed")
         else:
             (user, address) = req.accept()
             handle_user(user)
