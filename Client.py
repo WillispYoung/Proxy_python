@@ -73,6 +73,7 @@ class Client(object):
         threading.Thread(target=self.read_server, args=(user_socket, server)).start()
 
     def run(self):
+        self.add_listen_port(12345)
         while True:
             read_list, write_list, err_list = select.select(self.listen_list, [], [])
 
