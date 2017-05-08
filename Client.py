@@ -25,7 +25,7 @@ class Client(object):
         self.encrypt_map, self.decrypt_map = load_map("map.txt")
 
         self.control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.control_socket(self.control_socket_address)
+        self.control_socket.bind(self.control_socket_address)
         self.control_socket.listen(10)
 
         self.listen_list = [self.control_socket]
