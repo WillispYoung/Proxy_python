@@ -4,6 +4,7 @@ import select
 import threading
 from Modifier import *
 
+# it should be loaded from config file
 server_address = (sys.argv[1], eval(sys.argv[2]))
 key_map = load_map("map.txt")
 
@@ -27,7 +28,7 @@ def read_user(user, server):
             msg = user.recv(4096)
             msg = encrypt(msg, key_map)
             server.send(msg)
-        except socket.error:
+        except socket.error: # print err msg
             break
     user.close()
     server.close()
@@ -51,10 +52,12 @@ def handle_user(user):
     threading.Thread(target=read_server, args=(user, server)).start()
 
 
+# configurable again
 control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 control_socket.bind(("", 22222))
 control_socket.listen(20)
 
+# remove them
 a_user = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 a_user.bind(("", 12345))
 a_user.listen(20)
