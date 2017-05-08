@@ -42,5 +42,6 @@ def decrypt(msg, key_map):
     result = []
     msg_length = len(msg)
     for i in range(msg_length):
+        # don't use index method here, it just go through the whole list. use another map to store decrypt code book
         result.append(key_map.index(msg[i]))
     return bytes(result)
