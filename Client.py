@@ -17,7 +17,7 @@ class Client(object):
         try:
             data = json.load(open("config.json"))
             self.server_address = (data["server_ip"], int(data["server_port"]))
-            self.control_socket_address = ("", int(data["control_socket_address"]))
+            self.control_socket_address = ("", int(data["control_socket_port"]))
 
         except IOError:
             print("config file error")
