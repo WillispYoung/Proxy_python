@@ -1,0 +1,9 @@
+{
+    "client_ip": "166.111.80.96",
+    "control_socket_port": "22222",
+    "server_ip": "47.88.19.184",
+    "server_port": "33333",
+    "proxy_port": "3128",
+    "version": "ipv4",
+    "proto": "tcp"
+}

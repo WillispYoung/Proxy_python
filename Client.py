@@ -1,86 +1,99 @@
 import sys
+import json
 import socket
 import select
 import threading
 from Modifier import *
 
-# it should be loaded from config file
-server_address = (sys.argv[1], eval(sys.argv[2]))
-key_map = load_map("map.txt")
 
+class Client(object):
+    # encrypt_map
+    # decrypt_map
+    # server_address
+    # control_socket_address
+    # listen_list
 
-def get_server_socket():
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.connect(server_address)
-    return server
-
-
-def add_listen_port(port):
-    listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    listen_socket.bind(("", port))
-    listen_socket.listen(20)
-    return listen_socket
-
-
-def read_user(user, server):
-    while True:
+    def __init__(self):
         try:
-            msg = user.recv(4096)
-            msg = encrypt(msg, key_map)
-            server.send(msg)
-        except socket.error: # print err msg
-            break
-    user.close()
-    server.close()
+            data = json.load(open("config.json"))
+            self.server_address = (data["server_ip"], int(data["server_port"]))
+            self.control_socket_address = ("", int(data["control_socket_address"]))
 
+        except IOError:
+            print("config file error")
 
-def read_server(user, server):
-    while True:
-        try:
-            msg = server.recv(4096)
-            msg = decrypt(msg, key_map)
-            user.send(msg)
-        except socket.error:
-            break
-    user.close()
-    server.close()
+        self.encrypt_map, self.decrypt_map = load_map("map.txt")
 
+        self.control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.control_socket(self.control_socket_address)
+        self.control_socket.listen(10)
 
-def handle_user(user):
-    server = get_server_socket()
-    threading.Thread(target=read_user, args=(user, server)).start()
-    threading.Thread(target=read_server, args=(user, server)).start()
+        self.listen_list = [self.control_socket]
 
+    def generate_server_socket(self):
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.connect(self.server_address)
+        return server
 
-# configurable again
-control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-control_socket.bind(("", 22222))
-control_socket.listen(20)
+    def add_listen_port(self, port):
+        listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        listen_socket.bind(("", port))
+        listen_socket.listen(20)
+        self.listen_list.append(listen_socket)
+        return listen_socket
 
-# remove them
-a_user = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-a_user.bind(("", 12345))
-a_user.listen(20)
+    def read_user(self, user_socket, server_socket):
+        while True:
+            try:
+                msg = user_socket.recv(4096)
+                msg = encrypt(msg, self.encrypt_map)
+                server_socket.send(msg)
+            except socket.error as e:
+                print(e)
+                break
+        user_socket.close()
+        server_socket.close()
 
-listen_list = [control_socket, a_user]
+    def read_server(self, user_socket, server_socket):
+        while True:
+            try:
+                msg = server_socket.recv(4096)
+                msg = decrypt(msg, self.decrypt_map)
+                user_socket.send(msg)
+            except socket.error as e:
+                print(e)
+                break
+        user_socket.close()
+        server_socket.close()
 
-while True:
-    read_list, write_list, err_list = select.select(listen_list, [], [])
+    # use thread pool instead
+    def handle_user(self, user_socket):
+        server = self.generate_server_socket()
+        threading.Thread(target=self.read_user, args=(user_socket, server)).start()
+        threading.Thread(target=self.read_server, args=(user_socket, server)).start()
 
-    for req in read_list:
-        if req == control_socket:
-            s, addr = control_socket.accept()
-            msg = s.recv(256)
-            msg = msg.decode('utf-8')
-            command = msg.split('#')
-            if command[0] == 'add':
-                try:
-                    port = eval(command[1])
-                    listen_socket = add_listen_port(port)
-                    listen_list.append(listen_socket)
-                    print("add listen port", port, "succeed")
-                except socket.error:
-                    print("add listen port", port, "failed")
-        else:
-            (user, address) = req.accept()
-            handle_user(user) # this is not good again
+    def run(self):
+        while True:
+            read_list, write_list, err_list = select.select(self.listen_list, [], [])
+
+            for req in read_list:
+                if req == self.control_socket:
+                    s, _ = self.control_socket.accept()
+                    msg = s.recv(256)
+                    args = msg.decode('utf-8').split('#')
+                    # parse command part, need modification
+                    if args[0] == 'add':
+                        try:
+                            port = eval(args[1])
+                            listen_socket = self.add_listen_port(port)
+                            self.listen_list.append(listen_socket)
+                            print("add listen port", args[1], "succeed")
+                        except socket.error:
+                            print("add listen port", args[1], "failed")
+                else:
+                    (user, address) = req.accept()
+                    self.handle_user(user)
+
+if __name__ == "__main__":
+    c = Client()
+    c.run()
