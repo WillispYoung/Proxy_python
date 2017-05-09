@@ -41,6 +41,7 @@ class Manager(object):
         listen_socket.bind(("", port))
         listen_socket.listen(20)
         self.listen_list.append(listen_socket)
+        print("add listen port", port, "succeeded")
 
     def read_user(self, user_socket, server_socket):
         while True:
@@ -86,7 +87,6 @@ class Manager(object):
                         try:
                             port = eval(args[1])
                             self.add_listen_port(port)
-                            print("add listen port", args[1], "succeed")
                         except socket.error:
                             print("add listen port", args[1], "failed")
                 else:
