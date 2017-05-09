@@ -1,7 +1,7 @@
-import sys
 import json
 import socket
 import select
+import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from Modifier import *
 
@@ -68,6 +68,10 @@ class Manager(object):
         server_socket.close()
 
     def handle_user(self, user):
+        local_address = user.getpeername()
+        remote_address = user.getsockname()
+        print(local_address, remote_address)
+
         server = self.generate_server_socket()
         self.executor.submit(self.read_user, user, server)
         self.executor.submit(self.read_server, user, server)
