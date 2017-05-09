@@ -2,7 +2,7 @@ import sys
 import json
 import socket
 import select
-import threading
+from concurrent.futures import ThreadPoolExecutor
 from Modifier import *
 
 
@@ -23,6 +23,7 @@ class Client(object):
             print("config file error")
 
         self.encrypt_map, self.decrypt_map = load_map("map.txt")
+        self.executor = ThreadPoolExecutor(max_workers=10)
 
         self.control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.control_socket.bind(self.control_socket_address)
@@ -67,10 +68,10 @@ class Client(object):
         server_socket.close()
 
     # use thread pool instead
-    def handle_user(self, user_socket):
+    def handle_user(self, user):
         server = self.generate_server_socket()
-        threading.Thread(target=self.read_user, args=(user_socket, server)).start()
-        threading.Thread(target=self.read_server, args=(user_socket, server)).start()
+        self.executor.submit(self.read_user, user, server)
+        self.executor.submit(self.read_server, user, server)
 
     def run(self):
         self.add_listen_port(12345)
