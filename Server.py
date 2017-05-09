@@ -7,13 +7,13 @@ from Modifier import *
 class Server(object):
     def __init__(self):
         try:
-            data = json.load(open("config.json"))
+            data = json.load(open("init/config.json"))
             self.proxy_address = ("", int(data["proxy_port"]))
             self.server_address = ("", int(data["server_port"]))
         except FileNotFoundError:
             print("config file error")
 
-        self.encrypt_map, self.decrypt_map = load_map("map.txt")
+        self.encrypt_map, self.decrypt_map = load_map("init/map.txt")
         self.executor = ThreadPoolExecutor(max_workers=10)
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
