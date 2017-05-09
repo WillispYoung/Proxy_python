@@ -52,8 +52,6 @@ class Server(object):
         proxy = self.generate_proxy_socket()
         self.executor.submit(self.read_client, client, proxy)
         self.executor.submit(self.read_proxy, client, proxy)
-        # threading.Thread(target=self.read_client, args=(client, proxy)).start()
-        # threading.Thread(target=self.read_proxy, args=(client, proxy)).start()
 
     def run(self):
         while True:

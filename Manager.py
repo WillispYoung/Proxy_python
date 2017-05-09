@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from Modifier import *
 
 
-class Client(object):
+class Manager(object):
     # encrypt_map
     # decrypt_map
     # server_address
@@ -41,7 +41,6 @@ class Client(object):
         listen_socket.bind(("", port))
         listen_socket.listen(20)
         self.listen_list.append(listen_socket)
-        return listen_socket
 
     def read_user(self, user_socket, server_socket):
         while True:
@@ -67,7 +66,6 @@ class Client(object):
         user_socket.close()
         server_socket.close()
 
-    # use thread pool instead
     def handle_user(self, user):
         server = self.generate_server_socket()
         self.executor.submit(self.read_user, user, server)
@@ -87,8 +85,7 @@ class Client(object):
                     if args[0] == 'add':
                         try:
                             port = eval(args[1])
-                            listen_socket = self.add_listen_port(port)
-                            self.listen_list.append(listen_socket)
+                            self.add_listen_port(port)
                             print("add listen port", args[1], "succeed")
                         except socket.error:
                             print("add listen port", args[1], "failed")
@@ -97,5 +94,5 @@ class Client(object):
                     self.handle_user(user)
 
 if __name__ == "__main__":
-    c = Client()
-    c.run()
+    m = Manager()
+    m.run()
