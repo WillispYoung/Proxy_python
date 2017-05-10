@@ -170,8 +170,7 @@ class Manager(object):
                     except (socket.error, IOError) as e:
                         print(e)
                     else:
-                        print("control message error")
-                        control.close()
+                        print("error: handling control message")
                 else:
                     user, _ = req.accept()
                     self.handle_user(user)
