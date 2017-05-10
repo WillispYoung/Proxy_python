@@ -1,5 +1,4 @@
-import socket
+from Util import *
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect(("47.88.19.184", 33333))
-print(s.getpeername(), s.getsockname())
+print(get_location("202.119.32.7"))
+print(get_location("166.111.80.96"))

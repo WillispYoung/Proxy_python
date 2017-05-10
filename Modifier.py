@@ -1,7 +1,3 @@
-
-
-# filename: str
-# return [int], {int:int}
 def load_map(filename):
     try:
         reader = open(filename)
@@ -21,8 +17,6 @@ def load_map(filename):
         exit(1)
 
 
-# msg: <class 'bytes'>, encrypt_map: {int:int}
-# return <class 'bytes'>
 def encrypt(msg, encrypt_map):
     result = []
     msg_length = len(msg)
@@ -31,8 +25,6 @@ def encrypt(msg, encrypt_map):
     return bytes(result)
 
 
-# msg: <class 'bytes'>, decrypt_map: {int:int}
-# return <class'bytes'>
 def decrypt(msg, decrypt_map):
     result = []
     msg_length = len(msg)
