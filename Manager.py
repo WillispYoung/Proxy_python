@@ -16,13 +16,13 @@ class Manager(object):
             data = json.load(open("init/config.json"))
             self.server_address = (data["server_ip"], int(data["server_port"]))
             self.control_socket_address = ("", int(data["control_socket_port"]))
-            print("listen on", self.control_socket_address)
+            print("manager listen on", self.control_socket_address[1])
         except IOError:
             print("config file error")
 
         self.encrypt_map, self.decrypt_map = load_map("init/map.txt")
         self.bandwidth = {1: 1, 5: 2, 10: 5, 20: 10, 50: 20}
-        self.executor = ThreadPoolExecutor(max_workers=16)
+        self.executor = ThreadPoolExecutor(max_workers=10)
 
         self.control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.control_socket.bind(self.control_socket_address)

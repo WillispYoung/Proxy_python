@@ -14,7 +14,7 @@ class Server(object):
             print("config file error")
 
         self.encrypt_map, self.decrypt_map = load_map("init/map.txt")
-        self.executor = ThreadPoolExecutor(max_workers=16)
+        self.executor = ThreadPoolExecutor(max_workers=10)
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind(self.server_address)
