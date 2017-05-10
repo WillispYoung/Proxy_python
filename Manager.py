@@ -66,9 +66,9 @@ class Manager(object):
         server_socket.close()
 
     def handle_user(self, user):
-        print("handling user at", user.getpeername())
         remote_address = user.getpeername()
         local_address = user.getsockname()
+        print("handling user at", remote_address, local_address)
         now = (time.strftime("%Y-%m-%d,%H:%M:%S"), time.localtime())[0]
         command = "/home/zy/script/record_ip.sh " + str(local_address[1]) + " " + remote_address[0] + " " + now
         subprocess.Popen(command, shell=True)
