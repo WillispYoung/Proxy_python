@@ -13,7 +13,7 @@ class Server(object):
         except FileNotFoundError:
             print("config file error")
 
-        self.encrypt_map, self.decrypt_map = load_map("init/map.txt")
+        self.encrypt_map, self.decrypt_map = load_map("init/map")
         self.executor = ThreadPoolExecutor(max_workers=6)
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -20,7 +20,7 @@ class Manager(object):
         except IOError:
             print("config file error")
 
-        self.encrypt_map, self.decrypt_map = load_map("init/map.txt")
+        self.encrypt_map, self.decrypt_map = load_map("init/map")
         self.bandwidth = {1: 1, 5: 2, 10: 5, 20: 10, 50: 20}
         # self.executor = ThreadPoolExecutor(max_workers=6)
 

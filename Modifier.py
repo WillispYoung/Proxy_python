@@ -1,3 +1,20 @@
+from random import randint
+
+
+def generate_map():
+    file = open("init/map", "w")
+    arr = []
+    count = 0
+    while count < 256:
+        tmp = randint(0, 255)
+        if tmp not in arr:
+            arr.append(tmp)
+            file.write(str(tmp)+"\n")
+            count += 1
+    print(arr)
+    file.close()
+
+
 def load_map(filename):
     try:
         reader = open(filename)
