@@ -1,7 +1,7 @@
 import json
 import socket
 from concurrent.futures import ThreadPoolExecutor
-from Modifier import *
+from modifier import *
 
 
 class Server(object):

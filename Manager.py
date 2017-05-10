@@ -6,8 +6,8 @@ import select
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from Modifier import *
-from Util import *
+from modifier import *
+from util import *
 
 
 class Manager(object):
@@ -66,11 +66,11 @@ class Manager(object):
         server_socket.close()
 
     def handle_user(self, user):
-        remote_address = user.getpeername()
-        local_address = user.getsockname()
-        now = (time.strftime("%Y-%m-%d,%H:%M:%S"), time.localtime())[0]
-        command = "/home/zy/script/record_ip.sh " + str(local_address[1]) + " " + remote_address[0] + " " + now
-        subprocess.Popen(command, shell=True)
+        # remote_address = user.getpeername()
+        # local_address = user.getsockname()
+        # now = (time.strftime("%Y-%m-%d,%H:%M:%S"), time.localtime())[0]
+        # command = "/home/zy/script/record_ip.sh " + str(local_address[1]) + " " + remote_address[0] + " " + now
+        # subprocess.Popen(command, shell=True)
 
         server = self.generate_server_socket()
         self.executor.submit(self.read_user, user, server)
@@ -164,14 +164,16 @@ class Manager(object):
 
             for req in read_list:
                 if req == self.control_socket:
-                    control, _ = self.control_socket.accept()
-                    try:
-                        self.handle_control_msg(control)
-                    except (socket.error, IOError) as e:
-                        print(e)
+                    print("control socket coming")
+                    # control, _ = self.control_socket.accept()
+                    # try:
+                    #     self.handle_control_msg(control)
+                    # except (socket.error, IOError) as e:
+                    #     print(e)
                 else:
                     user, _ = req.accept()
                     self.handle_user(user)
+
 
 if __name__ == "__main__":
     m = Manager()

@@ -11,7 +11,6 @@ def generate_map():
             arr.append(tmp)
             file.write(str(tmp)+"\n")
             count += 1
-    print(arr)
     file.close()
 
 
