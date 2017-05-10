@@ -158,6 +158,7 @@ class Manager(object):
 
     def run(self):
         self.add_listen_port(12345)
+        print("add initial port", 12345)
         while True:
             read_list, _, _ = select.select(self.listen_list, [], [])
 
