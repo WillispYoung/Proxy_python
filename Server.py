@@ -19,7 +19,7 @@ class Server(object):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind(self.server_address)
         self.server_socket.listen(20)
-        print("server listening", self.server_address)
+        print("server listen on", self.server_address[1])
 
     def generate_proxy_socket(self):
         proxy = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
