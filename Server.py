@@ -14,7 +14,7 @@ class Server(object):
             print("config file error")
 
         self.encrypt_map, self.decrypt_map = load_map("init/map.txt")
-        self.executor = ThreadPoolExecutor(max_workers=10)
+        self.executor = ThreadPoolExecutor(max_workers=16)
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind(self.server_address)
@@ -32,7 +32,8 @@ class Server(object):
                 msg = client_socket.recv(4096)
                 msg = decrypt(msg, self.decrypt_map)
                 proxy_socket.send(msg)
-            except socket.error:  # pls print error msg
+            except socket.error as e:
+                print(e)
                 break
         client_socket.close()
         proxy_socket.close()
@@ -43,13 +44,13 @@ class Server(object):
                 msg = proxy_socket.recv(4096)
                 msg = encrypt(msg, self.encrypt_map)
                 client_socket.send(msg)
-            except socket.error:  # the same
+            except socket.error as e:
+                print(e)
                 break
         client_socket.close()
         proxy_socket.close()
 
     def handle_client(self, client):
-        print("handling client at", client.getpeername(),client.getsockname())
         proxy = self.generate_proxy_socket()
         self.executor.submit(self.read_client, client, proxy)
         self.executor.submit(self.read_proxy, client, proxy)

@@ -21,7 +21,7 @@ class Manager(object):
 
         self.encrypt_map, self.decrypt_map = load_map("init/map.txt")
         self.bandwidth = {1: 1, 5: 2, 10: 5, 20: 10, 50: 20}
-        self.executor = ThreadPoolExecutor(max_workers=10)
+        self.executor = ThreadPoolExecutor(max_workers=16)
 
         self.control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.control_socket.bind(self.control_socket_address)
@@ -38,7 +38,7 @@ class Manager(object):
     def add_listen_port(self, port):
         listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         listen_socket.bind(("", port))
-        listen_socket.listen(10)
+        listen_socket.listen(20)
         self.listen_list.append(listen_socket)
 
     def read_user(self, user_socket, server_socket):
@@ -68,7 +68,6 @@ class Manager(object):
     def handle_user(self, user):
         remote_address = user.getpeername()
         local_address = user.getsockname()
-        print("handling user at", remote_address, local_address)
         now = (time.strftime("%Y-%m-%d,%H:%M:%S"), time.localtime())[0]
         command = "/home/zy/script/record_ip.sh " + str(local_address[1]) + " " + remote_address[0] + " " + now
         subprocess.Popen(command, shell=True)
