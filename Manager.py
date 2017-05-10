@@ -16,7 +16,7 @@ class Manager(object):
             data = json.load(open("init/config.json"))
             self.server_address = (data["server_ip"], int(data["server_port"]))
             self.control_socket_address = ("", int(data["control_socket_port"]))
-
+            print("listen on", self.control_socket_address)
         except IOError:
             print("config file error")
 
@@ -26,7 +26,7 @@ class Manager(object):
 
         self.control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.control_socket.bind(self.control_socket_address)
-        self.control_socket.listen(10)
+        self.control_socket.listen(20)
 
         self.listen_list = [self.control_socket]
 
