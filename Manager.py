@@ -4,6 +4,7 @@ import json
 import socket
 import select
 import subprocess
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from Modifier import *
@@ -73,8 +74,10 @@ class Manager(object):
         subprocess.Popen(command, shell=True)
 
         server = self.generate_server_socket()
-        self.executor.submit(self.read_user, user, server)
-        self.executor.submit(self.read_server, user, server)
+        threading.Thread(self.read_user, user, server).start()
+        threading.Thread(self.read_server, user, server).start()
+        # self.executor.submit(self.read_user, user, server)
+        # self.executor.submit(self.read_server, user, server)
 
     def handle_control_msg(self, control):
         data = control.recv(256).decode('utf-8')
@@ -170,7 +173,7 @@ class Manager(object):
                     except (socket.error, IOError) as e:
                         print(e)
                     else:
-                        print("error: handling control message")
+                        print("error handling control message")
                 else:
                     user, _ = req.accept()
                     self.handle_user(user)
