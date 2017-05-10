@@ -76,85 +76,85 @@ class Manager(object):
         self.executor.submit(self.read_user, user, server)
         self.executor.submit(self.read_server, user, server)
 
-    def handle_control_msg(self, control):
-        data = control.recv(256).decode('utf-8')
-        head = data.split('@')[0]
-        msg = data.split('@')[1]
-        if head == "addport":
-            port = msg.split(',')[0]
-            user_type = msg.split(',')[1]
-            self.add_listen_port(port)
-            print("open port", port, "type:", user_type)
-
-            if type != 0:
-                subprocess.Popen("iptables -A OUTPUT -p tcp --sport "+port+" -j ACCEPT", shell=True)
-                subprocess.Popen("iptables -t mangle -A OUTPUT -p tcp --sport "+str(port) +
-                                 " -j MARK --set-mark "+str(port-10000), shell=True)
-                subprocess.Popen("tc class add dev eth9 parent  1: classid 1:"+str(port-10000) +
-                                 " htb rate "+str(self.bandwidth[user_type])+"mbit ceil "+str(self.bandwidth[user_type]+1)+"mbit burst 20k", shell=True)
-                subprocess.Popen("tc filter add dev eth9 parent 1: protocol ip prio 1 handle "+str(port-10000) +
-                                 " fw classid 1:"+str(port-10000), shell=True)
-
-        elif head == "upgrade":
-            port = msg.split(',')[0]
-            user_type = msg.split(',')[1]
-            if type != 0:
-                subprocess.Popen("tc class change dev eth9 parent  1: classid 1:"+str(port-10000) +
-                                 " htb rate "+str(self.bandwidth[user_type])+"mbit ceil "+str(self.bandwidth[user_type]+1)+"mbit burst 20k", shell=True)
-            subprocess.Popen("iptables -D INPUT -p tcp --dport "+str(port)+" -j DROP", shell=True)
-
-        elif head == "downgrade":
-            port = msg.split(',')[0]
-            user_type = msg.split(',')[1]
-            if type != 0:
-                subprocess.Popen("tc class change dev eth9 parent  1: classid 1:"+str(port-10000) +
-                                 " htb rate "+str(self.bandwidth[user_type])+"mbit ceil "+str(self.bandwidth[user_type]+1)+"mbit burst 20k", shell=True)
-        elif head == "reopen":
-            port = int(msg)
-            subprocess.Popen("iptables -D INPUT -p tcp --dport "+str(port)+" -j DROP", shell=True)
-
-            file1 = Path("/proxy/over_flow/"+str(port)+".1")
-            file2 = Path("/proxy/over_flow/"+str(port)+".2")
-            if file1.exists() and file1.is_file():
-                os.remove("/proxy/over_flow/" + str(port)+".1")
-            if file2.exists() and file2.is_file():
-                os.remove("/proxy/over_flow/" + str(port) + ".2")
-
-        elif head == "close":
-            port = msg.split(',')[0]
-            user_type = msg.split(',')[1]
-            print("close port", port, "type", user_type)
-            subprocess.Popen("iptables -A INPUT -p tcp --dport "+port+" -j DROP", shell=True)
-
-        elif head == "getflow":
-            port = int(msg)
-            result = get_flow_result(port)
-            print("get", port, "flow", result)
-            control.send(bytearray(str(result), encoding="utf-8"))
-
-        elif head == "preflow":
-            port = int(msg)
-            result = get_pre_flow(port)
-            print("get", port, "pre flow", result)
-            control.send(bytearray(str(result), encoding="utf-8"))
-
-        elif head == "getIP":
-            port = int(msg)
-            ip_address = get_ip_address(port)
-            print("get", port, "ip address", ip_address)
-            control.send(bytearray(ip_address, encoding="utf-8"))
-
-        elif head == "getIPList":
-            port = int(msg)
-            ip_list = get_ip_address_list(port)
-            if len(ip_list) == 0:
-                control.send(bytearray("", encoding="utf-8"))
-            else:
-                for ip in ip_list:
-                    control.send(bytearray(ip+",", encoding="utf-8"))
-            print("get", port, "IP list")
-
-        control.close()
+    # def handle_control_msg(self, control):
+    #     data = control.recv(256).decode('utf-8')
+    #     head = data.split('@')[0]
+    #     msg = data.split('@')[1]
+    #     if head == "addport":
+    #         port = msg.split(',')[0]
+    #         user_type = msg.split(',')[1]
+    #         self.add_listen_port(port)
+    #         print("open port", port, "type:", user_type)
+    #
+    #         if type != 0:
+    #             subprocess.Popen("iptables -A OUTPUT -p tcp --sport "+port+" -j ACCEPT", shell=True)
+    #             subprocess.Popen("iptables -t mangle -A OUTPUT -p tcp --sport "+str(port) +
+    #                              " -j MARK --set-mark "+str(port-10000), shell=True)
+    #             subprocess.Popen("tc class add dev eth9 parent  1: classid 1:"+str(port-10000) +
+    #                              " htb rate "+str(self.bandwidth[user_type])+"mbit ceil "+str(self.bandwidth[user_type]+1)+"mbit burst 20k", shell=True)
+    #             subprocess.Popen("tc filter add dev eth9 parent 1: protocol ip prio 1 handle "+str(port-10000) +
+    #                              " fw classid 1:"+str(port-10000), shell=True)
+    #
+    #     elif head == "upgrade":
+    #         port = msg.split(',')[0]
+    #         user_type = msg.split(',')[1]
+    #         if type != 0:
+    #             subprocess.Popen("tc class change dev eth9 parent  1: classid 1:"+str(port-10000) +
+    #                              " htb rate "+str(self.bandwidth[user_type])+"mbit ceil "+str(self.bandwidth[user_type]+1)+"mbit burst 20k", shell=True)
+    #         subprocess.Popen("iptables -D INPUT -p tcp --dport "+str(port)+" -j DROP", shell=True)
+    #
+    #     elif head == "downgrade":
+    #         port = msg.split(',')[0]
+    #         user_type = msg.split(',')[1]
+    #         if type != 0:
+    #             subprocess.Popen("tc class change dev eth9 parent  1: classid 1:"+str(port-10000) +
+    #                              " htb rate "+str(self.bandwidth[user_type])+"mbit ceil "+str(self.bandwidth[user_type]+1)+"mbit burst 20k", shell=True)
+    #     elif head == "reopen":
+    #         port = int(msg)
+    #         subprocess.Popen("iptables -D INPUT -p tcp --dport "+str(port)+" -j DROP", shell=True)
+    #
+    #         file1 = Path("/proxy/over_flow/"+str(port)+".1")
+    #         file2 = Path("/proxy/over_flow/"+str(port)+".2")
+    #         if file1.exists() and file1.is_file():
+    #             os.remove("/proxy/over_flow/" + str(port)+".1")
+    #         if file2.exists() and file2.is_file():
+    #             os.remove("/proxy/over_flow/" + str(port) + ".2")
+    #
+    #     elif head == "close":
+    #         port = msg.split(',')[0]
+    #         user_type = msg.split(',')[1]
+    #         print("close port", port, "type", user_type)
+    #         subprocess.Popen("iptables -A INPUT -p tcp --dport "+port+" -j DROP", shell=True)
+    #
+    #     elif head == "getflow":
+    #         port = int(msg)
+    #         result = get_flow_result(port)
+    #         print("get", port, "flow", result)
+    #         control.send(bytearray(str(result), encoding="utf-8"))
+    #
+    #     elif head == "preflow":
+    #         port = int(msg)
+    #         result = get_pre_flow(port)
+    #         print("get", port, "pre flow", result)
+    #         control.send(bytearray(str(result), encoding="utf-8"))
+    #
+    #     elif head == "getIP":
+    #         port = int(msg)
+    #         ip_address = get_ip_address(port)
+    #         print("get", port, "ip address", ip_address)
+    #         control.send(bytearray(ip_address, encoding="utf-8"))
+    #
+    #     elif head == "getIPList":
+    #         port = int(msg)
+    #         ip_list = get_ip_address_list(port)
+    #         if len(ip_list) == 0:
+    #             control.send(bytearray("", encoding="utf-8"))
+    #         else:
+    #             for ip in ip_list:
+    #                 control.send(bytearray(ip+",", encoding="utf-8"))
+    #         print("get", port, "IP list")
+    #
+    #     control.close()
 
     def run(self):
         self.add_listen_port(12345)
