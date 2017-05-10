@@ -21,7 +21,7 @@ class Manager(object):
 
         self.encrypt_map, self.decrypt_map = load_map("init/map.txt")
         self.bandwidth = {1: 1, 5: 2, 10: 5, 20: 10, 50: 20}
-        self.executor = ThreadPoolExecutor(max_workers=16)
+        self.executor = ThreadPoolExecutor(max_workers=6)
 
         self.control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.control_socket.bind(self.control_socket_address)
