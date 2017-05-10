@@ -38,7 +38,7 @@ class Manager(object):
     def add_listen_port(self, port):
         listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         listen_socket.bind(("", port))
-        listen_socket.listen(20)
+        listen_socket.listen(10)
         self.listen_list.append(listen_socket)
 
     def read_user(self, user_socket, server_socket):
@@ -66,6 +66,7 @@ class Manager(object):
         server_socket.close()
 
     def handle_user(self, user):
+        print("handling user at", user.getpeername())
         remote_address = user.getpeername()
         local_address = user.getsockname()
         now = (time.strftime("%Y-%m-%d,%H:%M:%S"), time.localtime())[0]

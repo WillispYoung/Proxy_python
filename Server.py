@@ -49,6 +49,7 @@ class Server(object):
         proxy_socket.close()
 
     def handle_client(self, client):
+        print("handling client at", client.getpeername())
         proxy = self.generate_proxy_socket()
         self.executor.submit(self.read_client, client, proxy)
         self.executor.submit(self.read_proxy, client, proxy)
