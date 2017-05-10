@@ -70,8 +70,8 @@ class Manager(object):
         local_address = user.getsockname()
         now = (time.strftime("%Y-%m-%d,%H:%M:%S"), time.localtime())[0]
         command = "/home/zy/script/record_ip.sh " + str(local_address[1]) + " " + remote_address[0] + " " + now
-        # subprocess.Popen(command, shell=True)
-        print(command)
+        subprocess.Popen(command, shell=True)
+
         server = self.generate_server_socket()
         self.executor.submit(self.read_user, user, server)
         self.executor.submit(self.read_server, user, server)
