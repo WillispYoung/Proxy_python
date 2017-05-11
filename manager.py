@@ -115,6 +115,7 @@ class Manager(object):
         server.settimeout(10)
         msg_queue.put((user, server, "en"))
         msg_queue.put((server, user, "de"))
+        print("queue put", msg_queue.qsize())
         # threading.Thread(target=self.read_user, args=(user, server)).start()
         # threading.Thread(target=self.read_server, args=(user, server)).start()
 
