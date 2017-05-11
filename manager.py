@@ -57,24 +57,24 @@ class Manager(object):
         listen_socket.listen(20)
         self.listen_list.append(listen_socket)
 
-    def data_transfer(self):
-        (socket1, socket2, option) = msg_queue.get_nowait()
-        if option == "en":
-            method = encrypt
-            used_map = self.encrypt_map
-        else:
-            method = decrypt
-            used_map = self.decrypt_map
+    def transfer(self):
+        (user, server) = msg_queue.get_nowait()
         while True:
             try:
-                msg = socket1.recv(4096)
-                msg = method(msg, used_map)
-                socket2.send(msg)
-            except socket.error as e:
-                print(e)
+                read_list, _, _ = select.select([user, server], [], [])
+                for s in read_list:
+                    if s == user:
+                        msg = user.recv(4096)
+                        msg = encrypt(msg, self.encrypt_map)
+                        server.send(msg)
+                    elif s == server:
+                        msg = server.recv(4096)
+                        msg = decrypt(msg, self.decrypt_map)
+                        user.send(msg)
+            except socket.error:
                 break
-        socket1.close()
-        socket2.close()
+        user.close()
+        server.close()
 
     def handle_user(self, user):
         remote_address = user.getpeername()
@@ -86,8 +86,7 @@ class Manager(object):
         server = self.generate_server_socket()
         user.settimeout(10)
         server.settimeout(10)
-        msg_queue.put((user, server, "en"))
-        msg_queue.put((server, user, "de"))
+        msg_queue.put((user, server))
 
     def handle_control_msg(self, control):
         data = control.recv(256).decode('utf-8')
@@ -173,8 +172,8 @@ class Manager(object):
         self.add_listen_port(12345)
         print("add initial port", 12345)
 
-        for i in range(self.thread_limit-1):
-            SocketThread(self.data_transfer).start()
+        for i in range(4):
+            SocketThread(self.transfer).start()
 
         while True:
             read_list, _, _ = select.select(self.listen_list, [], [])
