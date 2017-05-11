@@ -15,7 +15,7 @@ class Server(object):
             print("config file error")
 
         self.encrypt_map, self.decrypt_map = load_map("init/map")
-        self.executor = ThreadPoolExecutor(max_workers=4)
+        #self.executor = ThreadPoolExecutor(max_workers=4)
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind(self.server_address)
@@ -55,10 +55,10 @@ class Server(object):
         proxy = self.generate_proxy_socket()
         client.settimeout(10)
         proxy.settimeout(10)
-        self.executor.submit(self.read_client, client, proxy)
-        self.executor.submit(self.read_proxy, client, proxy)
-        # threading.Thread(target=self.read_client, args=(client, proxy)).start()
-        # threading.Thread(target=self.read_proxy, args=(client, proxy)).start()
+        #self.executor.submit(self.read_client, client, proxy)
+        #self.executor.submit(self.read_proxy, client, proxy)
+        threading.Thread(target=self.read_client, args=(client, proxy)).start()
+        threading.Thread(target=self.read_proxy, args=(client, proxy)).start()
 
     def run(self):
         while True:
