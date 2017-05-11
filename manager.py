@@ -74,8 +74,8 @@ class Manager(object):
         # subprocess.Popen(command, shell=True)
 
         server = self.generate_server_socket()
-        user.settimeout(1.0)
-        server.settimeout(1.0)
+        user.settimeout(10)
+        server.settimeout(10)
         self.executor.submit(self.read_user, user, server)
         self.executor.submit(self.read_server, user, server)
         # threading.Thread(target=self.read_user, args=(user, server)).start()
