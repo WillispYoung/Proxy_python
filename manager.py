@@ -4,7 +4,7 @@ import json
 import socket
 import select
 import subprocess
-from threading import Thread
+from threading import Thread, Event
 from multiprocessing import cpu_count
 from pathlib import Path
 from modifier import *
@@ -16,16 +16,17 @@ msg_queue = Queue()
 
 
 class SocketThread(Thread):
-    def __init__(self, func, args=(), name=""):
-        super(SocketThread, self).__init__(target=func, args=args, name=name)
+    def __init__(self, func, event):
+        super(SocketThread, self).__init__(target=func)
         self.func = func
-        self.args = args
-        self.name = name
+        self.event = event
 
     def run(self):
         while True:
             if msg_queue.qsize() > 0:
                 self.func()
+            else:
+                self.event.wait()
 
 
 class Manager(object):
@@ -40,6 +41,7 @@ class Manager(object):
         self.encrypt_map, self.decrypt_map = load_map("init/map")
         self.bandwidth = {1: 1, 5: 2, 10: 5, 20: 10, 50: 20}
         self.thread_limit = cpu_count()
+        self.event = Event()
 
         self.control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.control_socket.bind(self.control_socket_address)
@@ -59,33 +61,8 @@ class Manager(object):
         listen_socket.listen(20)
         self.listen_list.append(listen_socket)
 
-    # def read_user(self, user_socket, server_socket):
-    #     while True:
-    #         try:
-    #             msg = user_socket.recv(4096)
-    #             msg = encrypt(msg, self.encrypt_map)
-    #             server_socket.send(msg)
-    #         except socket.error as e:
-    #             print(e)
-    #             break
-    #     user_socket.close()
-    #     server_socket.close()
-    #
-    # def read_server(self, user_socket, server_socket):
-    #     while True:
-    #         try:
-    #             msg = server_socket.recv(4096)
-    #             msg = decrypt(msg, self.decrypt_map)
-    #             user_socket.send(msg)
-    #         except socket.error as e:
-    #             print(e)
-    #             break
-    #     user_socket.close()
-    #     server_socket.close()
-
     def data_transfer(self):
         (socket1, socket2, option) = msg_queue.get_nowait()
-        print(socket1.getpeername(), option)
         if option == "en":
             method = encrypt
             used_map = self.encrypt_map
@@ -104,21 +81,18 @@ class Manager(object):
         socket2.close()
 
     def handle_user(self, user):
-        # remote_address = user.getpeername()
-        # local_address = user.getsockname()
-        # now = (time.strftime("%Y-%m-%d,%H:%M:%S"), time.localtime())[0]
-        # command = "/home/zy/script/record_ip.sh " + str(local_address[1]) + " " + remote_address[0] + " " + now
-        # subprocess.Popen(command, shell=True)
+        remote_address = user.getpeername()
+        local_address = user.getsockname()
+        now = (time.strftime("%Y-%m-%d,%H:%M:%S"), time.localtime())[0]
+        command = "/home/zy/script/record_ip.sh " + str(local_address[1]) + " " + remote_address[0] + " " + now
+        subprocess.Popen(command, shell=True)
 
-        print("handle user", msg_queue.qsize())
         server = self.generate_server_socket()
         user.settimeout(10)
         server.settimeout(10)
         msg_queue.put((user, server, "en"))
         msg_queue.put((server, user, "de"))
-        print("queue put", msg_queue.qsize())
-        # threading.Thread(target=self.read_user, args=(user, server)).start()
-        # threading.Thread(target=self.read_server, args=(user, server)).start()
+        self.event.set()
 
     def handle_control_msg(self, control):
         data = control.recv(256).decode('utf-8')
@@ -204,8 +178,8 @@ class Manager(object):
         self.add_listen_port(12345)
         print("add initial port", 12345)
 
-        for i in range(4):
-            SocketThread(self.data_transfer).start()
+        for i in range(self.thread_limit-1):
+            SocketThread(self.data_transfer, self.event).start()
 
         while True:
             read_list, _, _ = select.select(self.listen_list, [], [])
