@@ -4,6 +4,7 @@ import json
 import socket
 import select
 import subprocess
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from modifier import *
@@ -21,7 +22,7 @@ class Manager(object):
 
         self.encrypt_map, self.decrypt_map = load_map("init/map")
         self.bandwidth = {1: 1, 5: 2, 10: 5, 20: 10, 50: 20}
-        self.executor = ThreadPoolExecutor(max_workers=6)
+        # self.executor = ThreadPoolExecutor(max_workers=6)
 
         self.control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.control_socket.bind(self.control_socket_address)
@@ -73,8 +74,10 @@ class Manager(object):
         # subprocess.Popen(command, shell=True)
 
         server = self.generate_server_socket()
-        self.executor.submit(self.read_user, user, server)
-        self.executor.submit(self.read_server, user, server)
+        # self.executor.submit(self.read_user, user, server)
+        # self.executor.submit(self.read_server, user, server)
+        threading.Thread(target=self.read_user, args=(user, server)).start()
+        threading.Thread(target=self.read_server, args=(user, server)).start()
 
     # def handle_control_msg(self, control):
     #     data = control.recv(256).decode('utf-8')
