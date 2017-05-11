@@ -109,6 +109,7 @@ class Manager(object):
         # command = "/home/zy/script/record_ip.sh " + str(local_address[1]) + " " + remote_address[0] + " " + now
         # subprocess.Popen(command, shell=True)
 
+        print("handle user", msg_queue.qsize())
         server = self.generate_server_socket()
         user.settimeout(10)
         server.settimeout(10)
@@ -201,7 +202,7 @@ class Manager(object):
         self.add_listen_port(12345)
         print("add initial port", 12345)
 
-        for i in range(self.thread_limit):
+        for i in range(4):
             SocketThread(self.data_transfer).start()
 
         while True:
