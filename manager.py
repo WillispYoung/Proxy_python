@@ -16,17 +16,14 @@ msg_queue = Queue()
 
 
 class SocketThread(Thread):
-    def __init__(self, func, event):
+    def __init__(self, func):
         super(SocketThread, self).__init__(target=func)
         self.func = func
-        self.event = event
 
     def run(self):
         while True:
             if msg_queue.qsize() > 0:
                 self.func()
-            else:
-                self.event.wait()
 
 
 class Manager(object):
@@ -41,7 +38,6 @@ class Manager(object):
         self.encrypt_map, self.decrypt_map = load_map("init/map")
         self.bandwidth = {1: 1, 5: 2, 10: 5, 20: 10, 50: 20}
         self.thread_limit = cpu_count()
-        self.event = Event()
 
         self.control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.control_socket.bind(self.control_socket_address)
@@ -92,7 +88,6 @@ class Manager(object):
         server.settimeout(10)
         msg_queue.put((user, server, "en"))
         msg_queue.put((server, user, "de"))
-        self.event.set()
 
     def handle_control_msg(self, control):
         data = control.recv(256).decode('utf-8')
@@ -179,7 +174,7 @@ class Manager(object):
         print("add initial port", 12345)
 
         for i in range(self.thread_limit-1):
-            SocketThread(self.data_transfer, self.event).start()
+            SocketThread(self.data_transfer).start()
 
         while True:
             read_list, _, _ = select.select(self.listen_list, [], [])
