@@ -1,7 +1,7 @@
 import json
 import socket
 import threading
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from modifier import *
 
 
@@ -15,7 +15,7 @@ class Server(object):
             print("config file error")
 
         self.encrypt_map, self.decrypt_map = load_map("init/map")
-        self.executor = ThreadPoolExecutor(max_workers=10)
+        self.executor = ProcessPoolExecutor(max_workers=10)
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind(self.server_address)
