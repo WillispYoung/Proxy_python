@@ -31,8 +31,7 @@ class Server(object):
                 msg = client_socket.recv(4096)
                 msg = decrypt(msg, self.decrypt_map)
                 proxy_socket.send(msg)
-            except socket.error as e:
-                print(e)
+            except socket.error:
                 break
         client_socket.close()
         proxy_socket.close()
@@ -43,8 +42,7 @@ class Server(object):
                 msg = proxy_socket.recv(4096)
                 msg = encrypt(msg, self.encrypt_map)
                 client_socket.send(msg)
-            except socket.error as e:
-                print(e)
+            except socket.error:
                 break
         client_socket.close()
         proxy_socket.close()
