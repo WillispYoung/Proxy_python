@@ -4,11 +4,25 @@ import json
 import socket
 import select
 import subprocess
-import threading
-from concurrent.futures import ThreadPoolExecutor
+from threading import Thread
+from multiprocessing import cpu_count
 from pathlib import Path
 from modifier import *
 from util import *
+from queue import Queue
+
+
+msg_queue = Queue()
+
+
+class SocketThread(Thread):
+    def __init__(self, func):
+        super(SocketThread, self).__init__(target=func)
+        self.func = func
+
+    def run(self):
+        while msg_queue.qsize() > 0:
+            self.func()
 
 
 class Manager(object):
@@ -22,7 +36,7 @@ class Manager(object):
 
         self.encrypt_map, self.decrypt_map = load_map("init/map")
         self.bandwidth = {1: 1, 5: 2, 10: 5, 20: 10, 50: 20}
-        self.executor = ThreadPoolExecutor(max_workers=4)
+        self.thread_limit = cpu_count()
 
         self.control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.control_socket.bind(self.control_socket_address)
@@ -42,31 +56,48 @@ class Manager(object):
         listen_socket.listen(20)
         self.listen_list.append(listen_socket)
 
-    def read_user(self, user_socket, server_socket):
-        while True:
-            try:
-                msg = user_socket.recv(4096)
-                msg = encrypt(msg, self.encrypt_map)
-                server_socket.send(msg)
-            except socket.error as e:
-                print(e)
-                break
-        user_socket.close()
-        server_socket.close()
-        ThreadPoolExecutor.shutdown(wait=True)
+    # def read_user(self, user_socket, server_socket):
+    #     while True:
+    #         try:
+    #             msg = user_socket.recv(4096)
+    #             msg = encrypt(msg, self.encrypt_map)
+    #             server_socket.send(msg)
+    #         except socket.error as e:
+    #             print(e)
+    #             break
+    #     user_socket.close()
+    #     server_socket.close()
+    #
+    # def read_server(self, user_socket, server_socket):
+    #     while True:
+    #         try:
+    #             msg = server_socket.recv(4096)
+    #             msg = decrypt(msg, self.decrypt_map)
+    #             user_socket.send(msg)
+    #         except socket.error as e:
+    #             print(e)
+    #             break
+    #     user_socket.close()
+    #     server_socket.close()
 
-    def read_server(self, user_socket, server_socket):
+    def data_transfer(self):
+        (socket1, socket2, option) = msg_queue.get()
+        if option == "en":
+            method = encrypt
+            used_map = self.encrypt_map
+        else:
+            method = decrypt
+            used_map = self.decrypt_map
         while True:
             try:
-                msg = server_socket.recv(4096)
-                msg = decrypt(msg, self.decrypt_map)
-                user_socket.send(msg)
+                msg = socket1.recv(4096)
+                msg = method(msg, used_map)
+                socket2.send(msg)
             except socket.error as e:
                 print(e)
                 break
-        user_socket.close()
-        server_socket.close()
-        ThreadPoolExecutor.shutdown(wait=True)
+        socket1.close()
+        socket2.close()
 
     def handle_user(self, user):
         remote_address = user.getpeername()
@@ -78,8 +109,10 @@ class Manager(object):
         server = self.generate_server_socket()
         user.settimeout(10)
         server.settimeout(10)
-        self.executor.submit(self.read_user, user, server)
-        self.executor.submit(self.read_server, user, server)
+        msg_queue.put((user, server, "de"))
+        msg_queue.put((server, user, "en"))
+        # self.executor.submit(self.read_user, user, server)
+        # self.executor.submit(self.read_server, user, server)
         # threading.Thread(target=self.read_user, args=(user, server)).start()
         # threading.Thread(target=self.read_server, args=(user, server)).start()
 
@@ -166,6 +199,9 @@ class Manager(object):
     def run(self):
         self.add_listen_port(12345)
         print("add initial port", 12345)
+
+        [SocketThread(self.data_transfer).start() for i in range(self.thread_limit)]
+
         while True:
             read_list, _, _ = select.select(self.listen_list, [], [])
 
