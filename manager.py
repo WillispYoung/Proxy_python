@@ -16,9 +16,11 @@ msg_queue = Queue()
 
 
 class SocketThread(Thread):
-    def __init__(self, func):
-        super(SocketThread, self).__init__(target=func)
+    def __init__(self, func, args=(), name=""):
+        super(SocketThread, self).__init__(target=func, args=args, name=name)
         self.func = func
+        self.args = args
+        self.name = name
 
     def run(self):
         while msg_queue.qsize() > 0:
@@ -82,6 +84,7 @@ class Manager(object):
 
     def data_transfer(self):
         (socket1, socket2, option) = msg_queue.get_nowait()
+        print(socket1.getpeername(), option)
         if option == "en":
             method = encrypt
             used_map = self.encrypt_map
@@ -100,19 +103,17 @@ class Manager(object):
         socket2.close()
 
     def handle_user(self, user):
-        remote_address = user.getpeername()
-        local_address = user.getsockname()
-        now = (time.strftime("%Y-%m-%d,%H:%M:%S"), time.localtime())[0]
-        command = "/home/zy/script/record_ip.sh " + str(local_address[1]) + " " + remote_address[0] + " " + now
-        subprocess.Popen(command, shell=True)
+        # remote_address = user.getpeername()
+        # local_address = user.getsockname()
+        # now = (time.strftime("%Y-%m-%d,%H:%M:%S"), time.localtime())[0]
+        # command = "/home/zy/script/record_ip.sh " + str(local_address[1]) + " " + remote_address[0] + " " + now
+        # subprocess.Popen(command, shell=True)
 
         server = self.generate_server_socket()
         user.settimeout(10)
         server.settimeout(10)
         msg_queue.put((user, server, "en"))
         msg_queue.put((server, user, "de"))
-        # self.executor.submit(self.read_user, user, server)
-        # self.executor.submit(self.read_server, user, server)
         # threading.Thread(target=self.read_user, args=(user, server)).start()
         # threading.Thread(target=self.read_server, args=(user, server)).start()
 
@@ -200,7 +201,8 @@ class Manager(object):
         self.add_listen_port(12345)
         print("add initial port", 12345)
 
-        [SocketThread(self.data_transfer).start() for i in range(self.thread_limit)]
+        for i in range(self.thread_limit):
+            SocketThread(self.data_transfer).start()
 
         while True:
             read_list, _, _ = select.select(self.listen_list, [], [])
