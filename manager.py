@@ -22,7 +22,7 @@ class Manager(object):
 
         self.encrypt_map, self.decrypt_map = load_map("init/map")
         self.bandwidth = {1: 1, 5: 2, 10: 5, 20: 10, 50: 20}
-        self.executor = ProcessPoolExecutor(max_workers=10)
+        self.executor = ProcessPoolExecutor(max_workers=4)
 
         self.control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.control_socket.bind(self.control_socket_address)
