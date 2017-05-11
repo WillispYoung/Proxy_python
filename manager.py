@@ -12,18 +12,15 @@ from util import *
 from queue import Queue
 
 
-msg_queue = Queue()
-
-
-class SocketThread(Thread):
-    def __init__(self, func):
-        super(SocketThread, self).__init__(target=func)
-        self.func = func
-
-    def run(self):
-        while True:
-            if msg_queue.qsize() > 0:
-                self.func()
+# class SocketThread(Thread):
+#     def __init__(self, func):
+#         super(SocketThread, self).__init__(target=func)
+#         self.func = func
+#
+#     def run(self):
+#         while True:
+#             if msg_queue.qsize() > 0:
+#                 self.func()
 
 
 class Manager(object):
@@ -57,24 +54,46 @@ class Manager(object):
         listen_socket.listen(20)
         self.listen_list.append(listen_socket)
 
-    def transfer(self):
-        (user, server) = msg_queue.get_nowait()
+    def read_user(self, user, server):
         while True:
             try:
-                read_list, _, _ = select.select([user, server], [], [])
-                for s in read_list:
-                    if s == user:
-                        msg = user.recv(4096)
-                        msg = encrypt(msg, self.encrypt_map)
-                        server.send(msg)
-                    elif s == server:
-                        msg = server.recv(4096)
-                        msg = decrypt(msg, self.decrypt_map)
-                        user.send(msg)
+                msg = user.recv(4096)
+                msg = encrypt(msg, self.encrypt_map)
+                server.send(msg)
             except socket.error:
                 break
         user.close()
         server.close()
+
+    def read_server(self, user, server):
+        while True:
+            try:
+                msg = server.recv(4096)
+                msg = decrypt(msg ,self.decrypt_map)
+                user.send(msg)
+            except socket.error:
+                break
+        user.close()
+        server.close()
+
+    # def transfer(self):
+    #     (user, server) = msg_queue.get_nowait()
+    #     while True:
+    #         try:
+    #             read_list, _, _ = select.select([user, server], [], [])
+    #             for s in read_list:
+    #                 if s == user:
+    #                     msg = user.recv(4096)
+    #                     msg = encrypt(msg, self.encrypt_map)
+    #                     server.send(msg)
+    #                 elif s == server:
+    #                     msg = server.recv(4096)
+    #                     msg = decrypt(msg, self.decrypt_map)
+    #                     user.send(msg)
+    #         except socket.error:
+    #             break
+    #     user.close()
+    #     server.close()
 
     def handle_user(self, user):
         remote_address = user.getpeername()
@@ -86,7 +105,8 @@ class Manager(object):
         server = self.generate_server_socket()
         user.settimeout(10)
         server.settimeout(10)
-        msg_queue.put((user, server))
+        Thread(target=self.read_user, args=(user, server)).start()
+        Thread(target=self.read_server, args=(user, server)).start()
 
     def handle_control_msg(self, control):
         data = control.recv(256).decode('utf-8')
@@ -171,9 +191,6 @@ class Manager(object):
     def run(self):
         self.add_listen_port(12345)
         print("add initial port", 12345)
-
-        for i in range(4):
-            SocketThread(self.transfer).start()
 
         while True:
             read_list, _, _ = select.select(self.listen_list, [], [])
