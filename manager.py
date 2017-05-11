@@ -81,7 +81,7 @@ class Manager(object):
     #     server_socket.close()
 
     def data_transfer(self):
-        (socket1, socket2, option) = msg_queue.get()
+        (socket1, socket2, option) = msg_queue.get_nowait()
         if option == "en":
             method = encrypt
             used_map = self.encrypt_map
@@ -109,8 +109,8 @@ class Manager(object):
         server = self.generate_server_socket()
         user.settimeout(10)
         server.settimeout(10)
-        msg_queue.put((user, server, "de"))
-        msg_queue.put((server, user, "en"))
+        msg_queue.put((user, server, "en"))
+        msg_queue.put((server, user, "de"))
         # self.executor.submit(self.read_user, user, server)
         # self.executor.submit(self.read_server, user, server)
         # threading.Thread(target=self.read_user, args=(user, server)).start()
