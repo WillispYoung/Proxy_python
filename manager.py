@@ -23,8 +23,9 @@ class SocketThread(Thread):
         self.name = name
 
     def run(self):
-        while msg_queue.qsize() > 0:
-            self.func()
+        while True:
+            if msg_queue.qsize() > 0:
+                self.func()
 
 
 class Manager(object):
