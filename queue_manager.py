@@ -4,7 +4,7 @@ import json
 import socket
 import select
 import subprocess
-from threading import Thread, Event
+from threading import Thread
 from multiprocessing import cpu_count
 from pathlib import Path
 from modifier import *
@@ -12,15 +12,18 @@ from util import *
 from queue import Queue
 
 
-# class SocketThread(Thread):
-#     def __init__(self, func):
-#         super(SocketThread, self).__init__(target=func)
-#         self.func = func
-#
-#     def run(self):
-#         while True:
-#             if msg_queue.qsize() > 0:
-#                 self.func()
+msg_queue = Queue()
+
+
+class SocketThread(Thread):
+    def __init__(self, func):
+        super(SocketThread, self).__init__(target=func)
+        self.func = func
+
+    def run(self):
+        while True:
+            (socket1, socket2, option) = msg_queue.get()
+            self.func(socket1, socket2, option)
 
 
 class Manager(object):
@@ -34,7 +37,7 @@ class Manager(object):
 
         self.encrypt_map, self.decrypt_map = load_map("init/map")
         self.bandwidth = {1: 1, 5: 2, 10: 5, 20: 10, 50: 20}
-        # self.thread_limit = cpu_count()
+        self.thread_limit = cpu_count()
 
         self.control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.control_socket.bind(self.control_socket_address)
@@ -76,37 +79,26 @@ class Manager(object):
         user.close()
         server.close()
 
-    # def transfer(self):
-    #     (user, server) = msg_queue.get_nowait()
-    #     while True:
-    #         try:
-    #             read_list, _, _ = select.select([user, server], [], [])
-    #             for s in read_list:
-    #                 if s == user:
-    #                     msg = user.recv(4096)
-    #                     msg = encrypt(msg, self.encrypt_map)
-    #                     server.send(msg)
-    #                 elif s == server:
-    #                     msg = server.recv(4096)
-    #                     msg = decrypt(msg, self.decrypt_map)
-    #                     user.send(msg)
-    #         except socket.error:
-    #             break
-    #     user.close()
-    #     server.close()
+    def transfer(self, socket1, socket2, option):
+        if option == "u2s":
+            self.read_user(socket1, socket2)
+        elif option == "s2u":
+            self.read_server(socket1, socket2)
 
     def handle_user(self, user):
-        remote_address = user.getpeername()
-        local_address = user.getsockname()
-        now = (time.strftime("%Y-%m-%d,%H:%M:%S"), time.localtime())[0]
-        command = "/home/zy/script/record_ip.sh " + str(local_address[1]) + " " + remote_address[0] + " " + now
-        subprocess.Popen(command, shell=True)
+        # remote_address = user.getpeername()
+        # local_address = user.getsockname()
+        # now = (time.strftime("%Y-%m-%d,%H:%M:%S"), time.localtime())[0]
+        # command = "/home/zy/script/record_ip.sh " + str(local_address[1]) + " " + remote_address[0] + " " + now
+        # subprocess.Popen(command, shell=True)
 
         server = self.generate_server_socket()
         user.settimeout(10)
         server.settimeout(10)
-        Thread(target=self.read_user, args=(user, server)).start()
-        Thread(target=self.read_server, args=(user, server)).start()
+        msg_queue.put((user, server, "u2s"))
+        msg_queue.put((user, server, "s2u"))
+        # Thread(target=self.read_user, args=(user, server)).start()
+        # Thread(target=self.read_server, args=(user, server)).start()
 
     def handle_control_msg(self, control):
         data = control.recv(256).decode('utf-8')
@@ -191,6 +183,9 @@ class Manager(object):
     def run(self):
         self.add_listen_port(12345)
         print("add initial port", 12345)
+
+        for i in range(0, 30):
+            SocketThread(self.transfer).start()
 
         while True:
             read_list, _, _ = select.select(self.listen_list, [], [])
