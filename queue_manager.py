@@ -86,11 +86,11 @@ class Manager(object):
             self.read_server(socket1, socket2)
 
     def handle_user(self, user):
-        # remote_address = user.getpeername()
-        # local_address = user.getsockname()
-        # now = (time.strftime("%Y-%m-%d,%H:%M:%S"), time.localtime())[0]
-        # command = "/home/zy/script/record_ip.sh " + str(local_address[1]) + " " + remote_address[0] + " " + now
-        # subprocess.Popen(command, shell=True)
+        remote_address = user.getpeername()
+        local_address = user.getsockname()
+        now = (time.strftime("%Y-%m-%d,%H:%M:%S"), time.localtime())[0]
+        command = "/home/zy/script/record_ip.sh " + str(local_address[1]) + " " + remote_address[0] + " " + now
+        subprocess.Popen(command, shell=True)
 
         server = self.generate_server_socket()
         user.settimeout(10)
@@ -133,6 +133,7 @@ class Manager(object):
             if type != 0:
                 subprocess.Popen("tc class change dev eth9 parent  1: classid 1:"+str(port-10000) +
                                  " htb rate "+str(self.bandwidth[user_type])+"mbit ceil "+str(self.bandwidth[user_type]+1)+"mbit burst 20k", shell=True)
+
         elif head == "reopen":
             port = int(msg)
             subprocess.Popen("iptables -D INPUT -p tcp --dport "+str(port)+" -j DROP", shell=True)
