@@ -111,7 +111,7 @@ class Manager(object):
             print("open port", port, "type:", user_type)
 
             if type != 0:
-                subprocess.Popen("iptables -A OUTPUT -p tcp --sport "+port+" -j ACCEPT", shell=True)
+                subprocess.Popen("iptables -A OUTPUT -p tcp --sport "+str(port)+" -j ACCEPT", shell=True)
                 subprocess.Popen("iptables -t mangle -A OUTPUT -p tcp --sport "+str(port) +
                                  " -j MARK --set-mark "+str(port-10000), shell=True)
                 subprocess.Popen("tc class add dev eth9 parent  1: classid 1:"+str(port-10000) +
@@ -149,7 +149,7 @@ class Manager(object):
             port = int(msg.split(',')[0])
             user_type = int(msg.split(',')[1])
             print("close port", port, "type", user_type)
-            subprocess.Popen("iptables -A INPUT -p tcp --dport "+port+" -j DROP", shell=True)
+            subprocess.Popen("iptables -A INPUT -p tcp --dport "+str(port)+" -j DROP", shell=True)
 
         elif head == "getflow":
             port = int(msg)
