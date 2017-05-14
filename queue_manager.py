@@ -107,7 +107,7 @@ class Manager(object):
         if head == "addport":
             port = msg.split(',')[0]
             user_type = msg.split(',')[1]
-            self.add_listen_port(port)
+            self.add_listen_port(int(port))
             print("open port", port, "type:", user_type)
 
             if type != 0:
