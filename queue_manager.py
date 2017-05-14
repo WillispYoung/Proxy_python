@@ -105,9 +105,9 @@ class Manager(object):
         head = data.split('@')[0]
         msg = data.split('@')[1]
         if head == "addport":
-            port = msg.split(',')[0]
-            user_type = msg.split(',')[1]
-            self.add_listen_port(int(port))
+            port = int(msg.split(',')[0])
+            user_type = int(msg.split(',')[1])
+            self.add_listen_port(port)
             print("open port", port, "type:", user_type)
 
             if type != 0:
@@ -120,16 +120,16 @@ class Manager(object):
                                  " fw classid 1:"+str(port-10000), shell=True)
 
         elif head == "upgrade":
-            port = msg.split(',')[0]
-            user_type = msg.split(',')[1]
+            port = int(msg.split(',')[0])
+            user_type = int(msg.split(',')[1])
             if type != 0:
                 subprocess.Popen("tc class change dev eth9 parent  1: classid 1:"+str(port-10000) +
                                  " htb rate "+str(self.bandwidth[user_type])+"mbit ceil "+str(self.bandwidth[user_type]+1)+"mbit burst 20k", shell=True)
             subprocess.Popen("iptables -D INPUT -p tcp --dport "+str(port)+" -j DROP", shell=True)
 
         elif head == "downgrade":
-            port = msg.split(',')[0]
-            user_type = msg.split(',')[1]
+            port = int(msg.split(',')[0])
+            user_type = int(msg.split(',')[1])
             if type != 0:
                 subprocess.Popen("tc class change dev eth9 parent  1: classid 1:"+str(port-10000) +
                                  " htb rate "+str(self.bandwidth[user_type])+"mbit ceil "+str(self.bandwidth[user_type]+1)+"mbit burst 20k", shell=True)
@@ -146,8 +146,8 @@ class Manager(object):
                 os.remove("/proxy/over_flow/" + str(port) + ".2")
 
         elif head == "close":
-            port = msg.split(',')[0]
-            user_type = msg.split(',')[1]
+            port = int(msg.split(',')[0])
+            user_type = int(msg.split(',')[1])
             print("close port", port, "type", user_type)
             subprocess.Popen("iptables -A INPUT -p tcp --dport "+port+" -j DROP", shell=True)
 
