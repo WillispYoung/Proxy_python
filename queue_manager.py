@@ -111,15 +111,13 @@ class Manager(object):
             print("open port", port, "type:", user_type)
 
             if type != 0:
-                subprocess.Popen("iptables -A OUTPUT -p tcp --sport "+str(port)+" -j ACCEPT", shell=True)
-                subprocess.Popen("iptables -t mangle -A OUTPUT -p tcp --sport "+str(port) +
-                                 " -j MARK --set-mark "+str(port-10000), shell=True)
-                # subprocess.Popen("tc class add dev eth9 parent  1: classid 1:"+str(port-10000) +
-                #                  " htb rate "+str(self.bandwidth[user_type])+"mbit ceil " +
-                #                  str(self.bandwidth[user_type] + 1) +
-                #                  "mbit burst 20k", shell=True)
-                # subprocess.Popen("tc filter add dev eth9 parent 1: protocol ip prio 1 handle "+str(port-10000) +
-                #                  " fw classid 1:"+str(port-10000), shell=True)
+                try:
+                    subprocess.Popen("iptables -A OUTPUT -p tcp --sport "+str(port)+" -j ACCEPT", shell=True)
+                    subprocess.Popen("iptables -t mangle -A OUTPUT -p tcp --sport "+str(port)+" -j MARK --set-mark "+str(port-10000), shell=True)
+                    subprocess.Popen("tc class add dev eth9 parent  1: classid 1:"+str(port-10000)+" htb rate "+str(self.bandwidth[user_type])+"mbit ceil " + str(self.bandwidth[user_type] + 1) + "mbit burst 20k", shell=True)
+                    subprocess.Popen("tc filter add dev eth9 parent 1: protocol ip prio 1 handle "+str(port-10000)+" fw classid 1:"+str(port-10000), shell=True)
+                except Exception as e:
+                    print(e)
 
         elif head == "upgrade":
             port = int(msg.split(',')[0])
