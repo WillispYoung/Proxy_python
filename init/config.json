@@ -5,5 +5,6 @@
     "server_port": "6666",
     "proxy_port": "3128",
     "version": "ipv4",
-    "proto": "tcp"
+    "proto": "tcp",
+    "thread_limit": "20000"
 }

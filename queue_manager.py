@@ -31,6 +31,7 @@ class Manager(object):
             data = json.load(open("init/config.json"))
             self.server_address = (data["server_ip"], int(data["server_port"]))
             self.control_socket_address = ("", int(data["control_socket_port"]))
+            self.thread_limit = int(data['thread_limit'])
         except IOError:
             print("config file error")
 
@@ -187,7 +188,7 @@ class Manager(object):
         self.port_ipaddr[12345] = ""
         print("add initial port", 12345)
 
-        for i in range(0, 2000):
+        for i in range(0, self.thread_limit):
             SocketThread(self.transfer).start()
 
         while True:
