@@ -16,19 +16,27 @@ msg3 = ["close@13579,5",
         "reopen@13579"]
 
 
-for m in msg1:
+# for m in msg1:
+#     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#     s.connect((data["client_ip"], int(data["control_socket_port"])))
+#     s.send(bytearray(m, encoding="utf-8"))
+#     s.close()
+#     print(m)
+#     time.sleep(1)
+#
+# for m in msg2:
+#     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#     s.connect((data["client_ip"], int(data["control_socket_port"])))
+#     s.send(bytearray(m, encoding="utf-8"))
+#     msg = s.recv(1024)
+#     print(msg, m)
+#     s.close()
+#     time.sleep(1)
+
+for m in msg3:
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((data["client_ip"], int(data["control_socket_port"])))
     s.send(bytearray(m, encoding="utf-8"))
     s.close()
     print(m)
-    time.sleep(1)
-
-for m in msg2:
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((data["client_ip"], int(data["control_socket_port"])))
-    s.send(bytearray(m, encoding="utf-8"))
-    msg = s.recv(1024)
-    print(msg, m)
-    s.close()
     time.sleep(1)
