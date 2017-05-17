@@ -5,7 +5,6 @@ import socket
 import select
 import subprocess
 from threading import Thread
-from multiprocessing import cpu_count
 from pathlib import Path
 from modifier import *
 from util import *
@@ -37,7 +36,7 @@ class Manager(object):
 
         self.encrypt_map, self.decrypt_map = load_map("init/map")
         self.bandwidth = {1: 1, 5: 2, 10: 5, 20: 10, 50: 20}
-        self.thread_limit = cpu_count()
+        self.port_ipaddr = {}
 
         self.control_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.control_socket.bind(self.control_socket_address)
@@ -88,9 +87,11 @@ class Manager(object):
     def handle_user(self, user):
         remote_address = user.getpeername()
         local_address = user.getsockname()
-        now = (time.strftime("%Y-%m-%d,%H:%M:%S"), time.localtime())[0]
-        command = "/home/zy/script/record_ip.sh " + str(local_address[1]) + " " + remote_address[0] + " " + now
-        subprocess.Popen(command, shell=True)
+        if self.port_ipaddr[local_address[1]] != remote_address[0]:
+            self.port_ipaddr[local_address[1]] = remote_address[0]
+            now = (time.strftime("%Y-%m-%d,%H:%M:%S"), time.localtime())[0]
+            command = "/home/zy/script/record_ip.sh " + str(local_address[1]) + " " + remote_address[0] + " " + now
+            subprocess.Popen(command, shell=True)
 
         server = self.generate_server_socket()
         user.settimeout(10)
@@ -183,6 +184,7 @@ class Manager(object):
 
     def run(self):
         self.add_listen_port(12345)
+        self.port_ipaddr[12345] = ""
         print("add initial port", 12345)
 
         for i in range(0, 2000):
