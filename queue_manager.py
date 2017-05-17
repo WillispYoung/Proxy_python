@@ -185,7 +185,7 @@ class Manager(object):
         self.add_listen_port(12345)
         print("add initial port", 12345)
 
-        for i in range(0, 1000):
+        for i in range(0, 2000):
             SocketThread(self.transfer).start()
 
         while True:
