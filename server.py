@@ -10,10 +10,10 @@ class Server(object):
             data = json.load(open("init/config.json"))
             self.proxy_address = ("", int(data["proxy_port"]))
             self.server_address = ("", int(data["server_port"]))
-        except FileNotFoundError:
+        except IOError:
             print("config file error")
 
-        self.encrypt_map, self.decrypt_map = load_map("init/map")
+        # self.encrypt_map, self.decrypt_map = load_map("init/map")
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind(self.server_address)
@@ -29,18 +29,18 @@ class Server(object):
         while True:
             try:
                 msg = client_socket.recv(4096)
-                msg = decrypt(msg, self.decrypt_map)
+                #msg = decrypt(msg, self.decrypt_map)
                 proxy_socket.send(msg)
             except socket.error:
                 break
         client_socket.close()
         proxy_socket.close()
-        
+
     def read_proxy(self, client_socket, proxy_socket):
         while True:
             try:
                 msg = proxy_socket.recv(4096)
-                msg = encrypt(msg, self.encrypt_map)
+                #msg = encrypt(msg, self.encrypt_map)
                 client_socket.send(msg)
             except socket.error:
                 break
