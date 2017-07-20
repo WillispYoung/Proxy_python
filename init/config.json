@@ -1,10 +1,14 @@
 {
-    "client_ip": "166.111.80.96",
-    "control_socket_port": "9999",
-    "server_ip": "47.88.19.184",
-    "server_port": "6666",
-    "proxy_port": "3128",
-    "version": "ipv4",
-    "proto": "tcp",
-    "thread_limit": "20000"
+  "manager":
+    {
+      "listen_port": 6666,
+      "local_proxy_port": 3128,
+      "remote_proxy_ip": "166.111.80.96",
+      "remote_proxy_port": 6666
+    },
+  "server":
+  {
+    "listen_port": 6666,
+    "proxy_port": 3128
+  }
 }

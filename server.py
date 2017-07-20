@@ -8,8 +8,8 @@ class Server(object):
     def __init__(self):
         try:
             data = json.load(open("init/config.json"))
-            self.proxy_address = ("", int(data["proxy_port"]))
-            self.server_address = ("", int(data["server_port"]))
+            self.proxy_address = ("", data["proxy_port"])
+            self.server_address = ("", data["server"]["listen_port"])
         except IOError:
             print("config file error")
 

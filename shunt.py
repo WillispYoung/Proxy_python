@@ -2,6 +2,7 @@ import json
 import socket
 import re
 from threading import Thread
+from modifier import *
 
 
 def check_type(header):
@@ -16,13 +17,13 @@ class Client(object):
             self.listen_addr = ("", data["listen_port"])
             self.remote_proxy_addr = (data["remote_proxy_ip"], data["remote_proxy_port"])
         except IOError:
-            print "config file not found"
+            print("config file not found")
             exit(1)
 
         self.acceptor = self.tcp_socket()
         self.acceptor.bind(self.listen_addr)
         self.acceptor.listen(20)
-        print "listening " + self.listen_addr[0] + " " + str(self.listen_addr[1])
+        print("listening " + self.listen_addr[0] + " " + str(self.listen_addr[1]))
 
         self.user_proxy_dict = {}       # means user socket and proxy socket pair
         self.user_proxy_status = {}     # means using VPN or not
