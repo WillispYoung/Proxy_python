@@ -8,12 +8,12 @@ class Server(object):
     def __init__(self):
         try:
             data = json.load(open("init/config.json"))
-            self.proxy_address = ("", data["proxy_port"])
+            self.proxy_address = ("", data["server"]["proxy_port"])
             self.server_address = ("", data["server"]["listen_port"])
         except IOError:
             print("config file error")
 
-        # self.encrypt_map, self.decrypt_map = load_map("init/map")
+        self.encrypt_map, self.decrypt_map = load_map("init/map")
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind(self.server_address)
