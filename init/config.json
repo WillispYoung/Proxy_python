@@ -1,9 +1,9 @@
 {
-  "manager":
+  "shunt":
     {
       "listen_port": 6666,
       "local_proxy_port": 3128,
-      "remote_proxy_ip": "166.111.80.96",
+      "remote_proxy_ip": "101.200.54.239",
       "remote_proxy_port": 6666
     },
   "server":
