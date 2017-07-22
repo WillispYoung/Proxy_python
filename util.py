@@ -7,8 +7,7 @@ def is_video_request(header):
 
 
 def sohu_check_feature_header(header):
-    pattern = ("GET .+&passwd=.+")
-    return re.match(pattern, header)
+    return "&passwd=" in header
 
 
 def sohu_get_vid_from_feature_header(header):
@@ -16,4 +15,7 @@ def sohu_get_vid_from_feature_header(header):
 
 
 def sohu_check_vid_from_video_request(header, flag):
+    print("private video:", flag)
     return ("vid=" + flag) in header
+
+
