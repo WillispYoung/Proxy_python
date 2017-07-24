@@ -26,10 +26,7 @@ class Client(object):
         print("shunt program listening on port", self.listen_addr[1])
 
         self.user_proxy = {}               # { user socket: [proxy socket, status] }
-        self.private_videos = []           # [ (privacy flag, check private video request) ]
-        self.assert_video_feature = {(sohu_check_feature_header,
-                                      sohu_get_vid_from_feature_header,
-                                      sohu_check_vid_from_video_request)}
+        self.sohu_private_vid = set()
 
     @staticmethod
     def generate_socket(addr):
@@ -48,25 +45,32 @@ class Client(object):
                         content = msg.decode("utf-8")
                         header = content.split("\n")[0]
 
-                        for (m1, m2, m3) in self.assert_video_feature:
-                            if m1(header):                          # check if header is feature header
-                                flag = m2(header)                   # get privacy flag value
-                                if (flag, m3) not in self.private_videos:
-                                    self.private_videos.append((flag, m3))     # push this video request
-                                break
+                        # sohu: get vid from feature header
+                        if "&passwd=" in header:
+                            vid = header.split("vid=")[1].split("&")[0]
+                            self.sohu_private_vid.add(vid)
 
                         if is_video_request(header):
+                            # iqiyi private video
                             if "&qd_tvid=" in header and "&qd_vipdyn=" not in header:
-                                self.user_proxy[u][1] = "private"       # iqiyi private video
+                                self.user_proxy[u][1] = "private"
 
+                            # sohu private video
                             if self.user_proxy[u][1] == "VPN":
-                                for (flag, m) in self.private_videos:
-                                    if m(header, flag):                 # go through private video list
+                                for vid in self.sohu_private_vid:
+                                    if ("vid=" + vid) in header:
                                         self.user_proxy[u][1] = "private"
                                         break
 
-                            if self.user_proxy[u][1] == "VPN":          # if request is still normal video request
-                                proxy = self.generate_socket(self.local_proxy_addr)  # then eject and set to noVPN
+                            # for youku, 111.13.140.* or 103.41.140.* shall be ejected
+                            # otherwise set to private
+                            if not (u.getpeername()[0].startswith("111.13.140") or u.getpeername()[0].startswith("103.41.140")):
+                                self.user_proxy[u][1] = "private"
+
+                            # if request is still normal video request
+                            # then set to noVPN and eject it
+                            if self.user_proxy[u][1] == "VPN":
+                                proxy = self.generate_socket(self.local_proxy_addr)
                                 proxy.settimeout(10)
                                 print("ejected:", header)
                                 self.user_proxy[u][0] = proxy
@@ -75,6 +79,8 @@ class Client(object):
 
                     except UnicodeDecodeError:
                         pass
+                if self.user_proxy[u][1] == "VPN":
+                    msg = encrypt(msg, self.encrypt_map)
                 proxy.send(msg)
             except socket.error:
                 break
@@ -90,6 +96,8 @@ class Client(object):
                 break
             try:
                 msg = proxy.recv(4096)
+                if self.user_proxy[u][1] == "VPN":
+                    msg = decrypt(msg, self.decrypt_map)
                 user.send(msg)
             except socket.error:
                 break
