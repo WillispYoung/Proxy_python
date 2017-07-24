@@ -79,7 +79,7 @@ class Client(object):
 
                     except UnicodeDecodeError:
                         pass
-                if self.user_proxy[u][1] == "VPN":
+                if self.user_proxy[u][1] != "noVPN":
                     msg = encrypt(msg, self.encrypt_map)
                 proxy.send(msg)
             except socket.error:
@@ -96,6 +96,8 @@ class Client(object):
                 break
             try:
                 msg = proxy.recv(4096)
+                if self.user_proxy[u][1] != "noVPN":
+                    msg = decrypt(msg, self.decrypt_map)
                 user.send(msg)
             except socket.error:
                 break
