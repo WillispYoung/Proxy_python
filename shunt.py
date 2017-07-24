@@ -17,7 +17,6 @@ class Client(object):
         except IOError:
             print("config file not found")
             exit(1)
-
         self.encrypt_map, self.decrypt_map = load_map("init/map")
 
         self.acceptor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -64,8 +63,10 @@ class Client(object):
 
                             # for youku, 111.13.140.* or 103.41.140.* shall be ejected
                             # otherwise set to private
-                            if not (u.getpeername()[0].startswith("111.13.140") or u.getpeername()[0].startswith("103.41.140")):
-                                self.user_proxy[u][1] = "private"
+                            if check_youku_request(header):
+                                if not (u.getpeername()[0].startswith("111.13.140") or
+                                            u.getpeername()[0].startswith("103.41.140")):
+                                    self.user_proxy[u][1] = "private"
 
                             # if request is still normal video request
                             # then set to noVPN and eject it
