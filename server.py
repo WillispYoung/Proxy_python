@@ -40,7 +40,6 @@ class Server(object):
         while True:
             try:
                 msg = proxy_socket.recv(4096)
-                msg = encrypt(msg, self.encrypt_map)
                 client_socket.send(msg)
             except socket.error:
                 break

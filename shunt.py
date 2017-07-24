@@ -96,8 +96,6 @@ class Client(object):
                 break
             try:
                 msg = proxy.recv(4096)
-                if self.user_proxy[u][1] == "VPN":
-                    msg = decrypt(msg, self.decrypt_map)
                 user.send(msg)
             except socket.error:
                 break
