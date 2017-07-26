@@ -87,7 +87,7 @@ class Client(object):
                             # then set to noVPN and eject it
                             if self.user_proxy[u][1] == "VPN":
                                 proxy = self.generate_socket(self.local_proxy_addr)
-                                proxy.settimeout(10)
+                                proxy.settimeout(20)
                                 print("ejected:", header)
                                 self.user_proxy[u][0] = proxy
                                 self.user_proxy[u][1] = "noVPN"
@@ -100,8 +100,6 @@ class Client(object):
                 proxy.send(msg)
             except socket.error:
                 break
-        user.close()
-        proxy.close()
 
     def proxy2user(self, u, p):
         user = u
@@ -109,7 +107,7 @@ class Client(object):
         while True:
             if self.user_proxy[u][0] != proxy:
                 proxy.close()
-                break
+                return
             try:
                 msg = proxy.recv(4096)
                 if self.user_proxy[u][1] != "noVPN":
@@ -117,14 +115,12 @@ class Client(object):
                 user.send(msg)
             except socket.error:
                 break
-        user.close()
-        proxy.close()
 
     def handle_user_connection(self, s):
         rp = self.generate_socket(self.remote_proxy_addr)
         self.user_proxy[s] = [rp, "VPN"]
-        s.settimeout(10)
-        rp.settimeout(10)
+        s.settimeout(20)
+        rp.settimeout(20)
         Thread(target=self.user2proxy, args=(s, rp)).start()
         Thread(target=self.proxy2user, args=(s, rp)).start()
 
