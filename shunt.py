@@ -26,6 +26,8 @@ class Client(object):
 
         self.user_proxy = {}               # { user socket: [proxy socket, status] }
         self.sohu_private_vid = set()
+        self.youku_vid_dictionary = {}
+        self.youku_private_vid = set()
 
     @staticmethod
     def generate_socket(addr):
@@ -49,6 +51,20 @@ class Client(object):
                             vid = header.split("vid=")[1].split("&")[0]
                             self.sohu_private_vid.add(vid)
 
+                        # youku html request: get vid pair and add to dictionary
+                        if check_youku_html_request(header):
+                            id1, id2 = get_youku_vid_from_html_request(content)
+                            if id1:
+                                self.youku_vid_dictionary[id1] = id2
+
+                        # youku feature request: get video id
+                        if check_youku_feature_header(header):
+                            vid = get_youku_vid_from_header(header)
+                            try:
+                                self.youku_private_vid.add(self.youku_vid_dictionary[vid])
+                            except KeyError:
+                                pass
+
                         if is_video_request(header):
                             # iqiyi private video
                             if "&qd_tvid=" in header and "&qd_vipdyn=" not in header:
@@ -61,11 +77,10 @@ class Client(object):
                                         self.user_proxy[u][1] = "private"
                                         break
 
-                            # for youku, 111.13.140.* or 103.41.140.* shall be ejected
-                            # otherwise set to private
-                            if check_youku_request(header):
-                                if not (u.getpeername()[0].startswith("111.13.140") or
-                                            u.getpeername()[0].startswith("103.41.140")):
+                            # youku private video
+                            if check_youku_video_request(header):
+                                vid = get_youku_vid_from_header(header)
+                                if vid in self.youku_private_vid:
                                     self.user_proxy[u][1] = "private"
 
                             # if request is still normal video request
