@@ -1,7 +1,7 @@
 import json
 import socket
 import threading
-from modifier import *
+from Modifier import *
 
 
 class Server(object):

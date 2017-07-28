@@ -1,16 +1,19 @@
 清云WiFi VPN安全通道
+WiFiVPNTunnel
 语言：Python 3.*
 文件说明：
-    server.py：服务器上的程序，对加密数据流进行处理
-    shunt.py：分流程序
-    modifier.py：用于数据流的加密解密
+    Server.py：服务器上，对加密数据流进行处理
+    Shunt.py：分流程序
+    Modifier.py：用于数据流的加密解密
+    Util.py：提供一些方法，对数据流进行解析和处理
+    Main.py：项目的可执行程序的主体
+    GUI.py：客户端的GUI，显示分流结果等
 
 Todo:
+    发布可用客户端
 
-说明：
-    socket.bind/connect 时使用("localhost", port)而不是("", port)
-
-完成情况：
-    普通视频弹出的延迟和跳播的延迟不明显
-    爱奇艺、搜狐（与56）的加密视频的不弹出基本实现
-    优酷视频基于IP做了弹出和不弹出的处理
+关于客户端执行流程：
+1、启动squid\r\n
+2、启动图形界面\r\n
+3、启动分流程序\r\n
+4、分流程序将分流结果等传递给图形界面

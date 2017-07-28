@@ -1,9 +1,8 @@
 import json
 import socket
-import subprocess
 from threading import Thread
-from modifier import *
-from util import *
+from Modifier import *
+from Util import *
 
 
 class Client(object):
@@ -87,7 +86,7 @@ class Client(object):
                             # then set to noVPN and eject it
                             if self.user_proxy[u][1] == "VPN":
                                 proxy = self.generate_socket(self.local_proxy_addr)
-                                proxy.settimeout(20)
+                                proxy.settimeout(10)
                                 print("ejected:", header)
                                 self.user_proxy[u][0] = proxy
                                 self.user_proxy[u][1] = "noVPN"
@@ -100,6 +99,8 @@ class Client(object):
                 proxy.send(msg)
             except socket.error:
                 break
+        proxy.close()
+        user.close()
 
     def proxy2user(self, u, p):
         user = u
@@ -119,8 +120,8 @@ class Client(object):
     def handle_user_connection(self, s):
         rp = self.generate_socket(self.remote_proxy_addr)
         self.user_proxy[s] = [rp, "VPN"]
-        s.settimeout(20)
-        rp.settimeout(20)
+        s.settimeout(10)
+        rp.settimeout(10)
         Thread(target=self.user2proxy, args=(s, rp)).start()
         Thread(target=self.proxy2user, args=(s, rp)).start()
 
@@ -128,12 +129,3 @@ class Client(object):
         while True:
             s, _ = self.acceptor.accept()
             self.handle_user_connection(s)
-
-if __name__ == "__main__":
-    try:
-        subprocess.Popen("C:/squid/sbin/squid", shell=True)
-        print("local squid started")
-    finally:
-        pass
-    c = Client()
-    c.run()
