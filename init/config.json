@@ -1,7 +1,6 @@
 {
   "shunt":
     {
-      "locahost": "183.172.217.19",
       "listen_port": 6666,
       "noVPN_ip": "166.111.80.96",
       "noVPN_port": 7777,
@@ -20,7 +19,6 @@
   },
   "GUI":
   {
-    "localhost": "",
     "listen_port": 8888
   }
 }

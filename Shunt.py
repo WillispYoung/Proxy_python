@@ -12,6 +12,7 @@ class Shunt(object):
             self.noVPN_addr = (data["shunt"]["noVPN_ip"], data["shunt"]["noVPN_port"])
             self.listen_addr = ("localhost", data["shunt"]["listen_port"])
             self.VPN_addr = (data["shunt"]["VPN_ip"], data["shunt"]["VPN_port"])
+            self.GUI_addr = ("localhost", data["GUI"]["listen_port"])
             print("config information loaded")
         except IOError:
             print("config file not found")
@@ -129,7 +130,3 @@ class Shunt(object):
         while True:
             s, _ = self.acceptor.accept()
             self.handle_user_connection(s)
-
-
-s = Shunt()
-s.run()
