@@ -5,13 +5,13 @@ from Modifier import *
 from Util import *
 
 
-class Client(object):
+class Shunt(object):
     def __init__(self):
         try:
             data = json.load(open("init/config.json"))
-            self.local_proxy_addr = ("localhost", data["shunt"]["local_proxy_port"])
+            self.noVPN_addr = (data["shunt"]["noVPN_ip"], data["shunt"]["noVPN_port"])
             self.listen_addr = ("localhost", data["shunt"]["listen_port"])
-            self.remote_proxy_addr = (data["shunt"]["remote_proxy_ip"], data["shunt"]["remote_proxy_port"])
+            self.VPN_addr = (data["shunt"]["VPN_ip"], data["shunt"]["VPN_port"])
             print("config information loaded")
         except IOError:
             print("config file not found")
@@ -85,7 +85,7 @@ class Client(object):
                             # if request is still normal video request
                             # then set to noVPN and eject it
                             if self.user_proxy[u][1] == "VPN":
-                                proxy = self.generate_socket(self.local_proxy_addr)
+                                proxy = self.generate_socket(self.noVPN_addr)
                                 proxy.settimeout(10)
                                 print("ejected:", header)
                                 self.user_proxy[u][0] = proxy
@@ -118,7 +118,7 @@ class Client(object):
                 break
 
     def handle_user_connection(self, s):
-        rp = self.generate_socket(self.remote_proxy_addr)
+        rp = self.generate_socket(self.VPN_addr)
         self.user_proxy[s] = [rp, "VPN"]
         s.settimeout(10)
         rp.settimeout(10)
@@ -129,3 +129,7 @@ class Client(object):
         while True:
             s, _ = self.acceptor.accept()
             self.handle_user_connection(s)
+
+
+s = Shunt()
+s.run()
