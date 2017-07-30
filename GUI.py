@@ -1,6 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import *
 import subprocess
+from threading import Thread
 import socket
 import json
 
@@ -8,7 +9,7 @@ import json
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(400, 500)
+        MainWindow.resize(800, 800)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -86,6 +87,13 @@ class Ui_MainWindow(object):
         self.state.setText("Disconnected")
 
         self.retranslateUi(MainWindow)
+        self.label.setFont(QFont("微软雅黑", 10, QFont.Bold))
+        self.state.setFont(QFont("微软雅黑", 10, QFont.Bold))
+        self.groupBox.setFont(QFont("微软雅黑", 10))
+        self.textEdit.setFont(QFont("微软雅黑", 10))
+        self.connect.setFont(QFont("微软雅黑", 10))
+        self.disconnect.setFont(QFont("微软雅黑", 10))
+        self.cancel.setFont(QFont("微软雅黑", 10))
         self.cancel.clicked.connect(QtCore.QCoreApplication.quit)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -94,18 +102,27 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Tsinghua WiFi-VPN Program"))
-        self.label.setText(_translate("MainWindow", "当前状态："))
-        self.groupBox.setTitle(_translate("MainWindow", "操作"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Tsinghua WiFi-VPN Tunnel"))
+        self.label.setText(_translate("MainWindow", "Current State:"))
+        self.groupBox.setTitle(_translate("MainWindow", "Operations"))
         self.connect.setText(_translate("MainWindow", "Connect"))
         self.disconnect.setText(_translate("MainWindow", "Disconnect"))
         self.cancel.setText(_translate("MainWindow", "Cancel"))
 
 
-class GuiThread(QtCore.QThread, Ui_MainWindow):
+class GuiThread(QtWidgets.QMainWindow, Ui_MainWindow):
     txt_signal = pyqtSignal(str)
 
-    def init(self):
+    def __init__(self):
+        QtWidgets.QMainWindow.__init__(self)
+        self.setupUi(self)
+        self.close_flag = 0
+        self.connect.clicked.connect(self.connect_button_click)
+        self.disconnect.clicked.connect(self.disconnect_button_click)
+        self.txt_signal.connect(self.writetoTextbox)
+        self.textEdit.append("Welcome to use Tsinghua WiFi-VPN Tunnel.")
+        self.textEdit.append("Before you press the Connect button please set the proxy server port to 6666.")
+        self.textEdit.append("")
         try:
             data = json.load(open("init/config.json"))
             self.backend_addr = ("localhost", data["shunt"]["event_listen_port"])
@@ -119,9 +136,6 @@ class GuiThread(QtCore.QThread, Ui_MainWindow):
         self.acceptor.bind(self.listen_addr)
         self.acceptor.listen(20)
 
-        #这个socket应该需要的时候再生成，而不是生成一个长连接，不然timeout太大，没意义
-        # self.sock = self.generate_socket(self.backend_addr)
-
     def run(self):
         while True:
             gui, _ = self.acceptor.accept()
@@ -133,15 +147,12 @@ class GuiThread(QtCore.QThread, Ui_MainWindow):
                 gui.close()
 
     # cancel按钮的有作用吗？另外，要设置成点击右上角关闭后程序退出（exit(0)）
-    # 点击connect和disconnect之后最好在文本框里面显示一下，而不是单纯的更改上面的label
-    # 修改一下图形界面的大小和文本框、按钮的字体，默认的字体太难看了
-    # 初始显示的信息最好改一改，加上用户如何使用（设置系统代理）、欢迎之类的东西
 
     def connect_button_click(self):
         self.state.setText("Connected")
+        self.txt_signal.emit("WiFi-VPN Tunnel connected.")
         try:
             s = self.generate_socket(self.backend_addr)
-            # 发送和接受的是byte流，而不是字符串
             s.send(bytes("connect", encoding="utf-8"))
             s.close()
         except socket.error:
@@ -149,6 +160,7 @@ class GuiThread(QtCore.QThread, Ui_MainWindow):
 
     def disconnect_button_click(self):
         self.state.setText("Disconnected")
+        self.txt_signal.emit("WiFi-VPN Tunnel disconnected.")
         try:
             s = self.generate_socket(self.backend_addr)
             s.send(bytes("disconnect", encoding="utf-8"))
@@ -161,5 +173,9 @@ class GuiThread(QtCore.QThread, Ui_MainWindow):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect(addr)
         return s
+
+    def closeEvent(self, event):
+        print("close!!!")
+        #这里处理右上角关闭事件，exit（0）会无响应，用socket发给后台信息，后台进行break,exit都没有用
 
 
