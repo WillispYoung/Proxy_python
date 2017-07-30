@@ -9,20 +9,21 @@ class Shunt(object):
     def __init__(self):
         try:
             data = json.load(open("init/config.json"))
-            self.noVPN_addr = (data["shunt"]["noVPN_ip"], data["shunt"]["noVPN_port"])
             self.listen_addr = ("localhost", data["shunt"]["listen_port"])
+            self.noVPN_addr = (data["shunt"]["noVPN_ip"], data["shunt"]["noVPN_port"])
             self.VPN_addr = (data["shunt"]["VPN_ip"], data["shunt"]["VPN_port"])
+            self.event_addr = ("localhost", data["shunt"]["event_listen_port"])
             self.GUI_addr = ("localhost", data["GUI"]["listen_port"])
-            print("config information loaded")
         except IOError:
-            print("config file not found")
+            print("config file not found, program exit")
             exit(1)
-        self.encrypt_map, self.decrypt_map = load_map("init/map")
 
-        self.acceptor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.acceptor.bind(self.listen_addr)
-        self.acceptor.listen(20)
-        print("shunt program listening on port", self.listen_addr[1])
+        self.encrypt_map, self.decrypt_map = load_map("init/map")
+        self.shunt_status = "dead"         # or alive
+
+        self.acceptor = None
+        self.event_listener = None
+        # self.event_emitter = None
 
         self.user_proxy = {}               # { user socket: [proxy socket, status] }
         self.sohu_private_vid = set()
@@ -88,13 +89,19 @@ class Shunt(object):
                             if self.user_proxy[u][1] == "VPN":
                                 proxy = self.generate_socket(self.noVPN_addr)
                                 proxy.settimeout(10)
-                                print("ejected:", header)
                                 self.user_proxy[u][0] = proxy
                                 self.user_proxy[u][1] = "noVPN"
+
+                                event_emitter = self.generate_socket(self.GUI_addr)
+                                event_emitter.send(bytes("ejected: "+header, encoding="utf-8"))
+                                event_emitter.close()
+
+                                print("ejected:", header)
                                 Thread(target=self.proxy2user, args=(user, proxy)).start()
 
                     except UnicodeDecodeError:
                         pass
+
                 if self.user_proxy[u][1] != "noVPN":
                     msg = encrypt(msg, self.encrypt_map)
                 proxy.send(msg)
@@ -126,7 +133,43 @@ class Shunt(object):
         Thread(target=self.user2proxy, args=(s, rp)).start()
         Thread(target=self.proxy2user, args=(s, rp)).start()
 
-    def run(self):
+    def run_shunt(self):
+        self.acceptor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.acceptor.bind(self.listen_addr)
+        self.acceptor.listen(20)
+        print("shunt program listening on port", self.listen_addr[1])
+
         while True:
-            s, _ = self.acceptor.accept()
-            self.handle_user_connection(s)
+            try:
+                s, _ = self.acceptor.accept()
+                if self.shunt_status == "alive":
+                    self.handle_user_connection(s)
+                else:
+                    s.close()
+            except socket.error:
+                pass
+
+    def handle_control_message(self, s):
+        try:
+            msg = s.recv(1024)
+            if msg == b'connect':
+                self.shunt_status = "alive"
+            elif msg == b'disconnect':
+                self.shunt_status = "dead"
+            else:
+                print("invalid control message")
+        except socket.error:
+            pass
+        s.close()
+
+    def run(self):
+        Thread(target=self.run_shunt).start()
+
+        self.event_listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.event_listener.bind(self.event_addr)
+        self.event_listener.listen(20)
+        print("event listener listening on port", self.event_addr[1])
+
+        while True:
+            s, addr = self.event_listener.accept()
+            self.handle_control_message(s)

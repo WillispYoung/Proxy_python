@@ -8,7 +8,7 @@ import json
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(619, 551)
+        MainWindow.resize(400, 500)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -108,7 +108,7 @@ class GuiThread(QtCore.QThread, Ui_MainWindow):
     def init(self):
         try:
             data = json.load(open("init/config.json"))
-            self.backend_addr = ("localhost", data["shunt"]["listen_port"])
+            self.backend_addr = ("localhost", data["shunt"]["event_listen_port"])
             self.listen_addr = ("localhost", data["GUI"]["listen_port"])
             self.textEdit.append("config information loaded")
         except IOError:
@@ -119,27 +119,42 @@ class GuiThread(QtCore.QThread, Ui_MainWindow):
         self.acceptor.bind(self.listen_addr)
         self.acceptor.listen(20)
 
-        self.sock = self.generate_socket(self.backend_addr)
+        #这个socket应该需要的时候再生成，而不是生成一个长连接，不然timeout太大，没意义
+        # self.sock = self.generate_socket(self.backend_addr)
 
     def run(self):
         while True:
             gui, _ = self.acceptor.accept()
             try:
-                msg = self.sock.recv(4096)
+                msg = gui.recv(4096)
                 content = msg.decode("utf-8")
                 self.txt_signal.emit(content)
             except socket.error:
                 gui.close()
 
+    # cancel按钮的有作用吗？另外，要设置成点击右上角关闭后程序退出（exit(0)）
+    # 点击connect和disconnect之后最好在文本框里面显示一下，而不是单纯的更改上面的label
+    # 修改一下图形界面的大小和文本框、按钮的字体，默认的字体太难看了
+    # 初始显示的信息最好改一改，加上用户如何使用（设置系统代理）、欢迎之类的东西
+
     def connect_button_click(self):
         self.state.setText("Connected")
-        msg = "connect"
-        self.sock.send(msg)
+        try:
+            s = self.generate_socket(self.backend_addr)
+            # 发送和接受的是byte流，而不是字符串
+            s.send(bytes("connect", encoding="utf-8"))
+            s.close()
+        except socket.error:
+            print("failed in sending control message")
 
     def disconnect_button_click(self):
         self.state.setText("Disconnected")
-        msg = "disconnect"
-        self.sock.send(msg)
+        try:
+            s = self.generate_socket(self.backend_addr)
+            s.send(bytes("disconnect", encoding="utf-8"))
+            s.close()
+        except socket.error:
+            print("failed in sending control message")
 
     @staticmethod
     def generate_socket(addr):
