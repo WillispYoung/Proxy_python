@@ -146,7 +146,7 @@ class GuiThread(QtWidgets.QMainWindow, Ui_MainWindow):
             except socket.error:
                 gui.close()
 
-    # cancel按钮的有作用吗？另外，要设置成点击右上角关闭后程序退出（exit(0)）
+    # cancel按钮的有作用吗？另外，要设置成点击右上角关闭后程序退出（exit(0)） 处理完关闭就能解决cancel
 
     def connect_button_click(self):
         self.state.setText("Connected")
