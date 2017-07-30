@@ -2,13 +2,24 @@
   "shunt":
     {
       "listen_port": 6666,
-      "local_proxy_port": 3128,
-      "remote_proxy_ip": "166.111.80.96",
-      "remote_proxy_port": 6666
+      "noVPN_ip": "166.111.80.96",
+      "noVPN_port": 7777,
+      "VPN_ip": "166.111.80.96",
+      "VPN_port": 6666,
+      "event_listen_port": 8888
     },
   "server":
   {
     "listen_port": 6666,
     "proxy_port": 3128
+  },
+  "noVPN":
+  {
+    "listen_port": 7777,
+    "proxy_port": 3128
+  },
+  "GUI":
+  {
+    "listen_port": 9999
   }
 }
