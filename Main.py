@@ -7,11 +7,16 @@ from PyQt5.QtWidgets import QApplication, QMainWindow
 if __name__ == '__main__':
     # start shunt
     s = Shunt.Shunt()
-    Thread(target=s.run).start()
+    shunt_thread = Thread(target=s.run)
+    shunt_thread.setDaemon(True)
+    shunt_thread.start()
+    # Thread(target=s.run).start()
 
     # start gui and show MainWindow
     app = QApplication(sys.argv)
     c = GUI.GuiThread()
-    Thread(target=c.run).start()
+    gui_thread = Thread(target=c.run)
+    gui_thread.setDaemon(True)
+    gui_thread.start()
     c.show()
     sys.exit(app.exec_())

@@ -120,14 +120,15 @@ class GuiThread(QtWidgets.QMainWindow, Ui_MainWindow):
         self.connect.clicked.connect(self.connect_button_click)
         self.disconnect.clicked.connect(self.disconnect_button_click)
         self.txt_signal.connect(self.writetoTextbox)
-        self.textEdit.append("Welcome to use Tsinghua WiFi-VPN Tunnel.")
-        self.textEdit.append("Before you press the Connect button please set the proxy server port to 6666.")
-        self.textEdit.append("")
+        self.textEdit.append("欢迎使用清云WiFiVPN安全通道\n"
+                             "在启动连接之前，请将本机的网络代理设置成本地的6666端口\n"
+                             "之后点击 Connect 按钮，安全通道即可开始工作\n"
+                             "----------------------------------")
         try:
             data = json.load(open("init/config.json"))
             self.backend_addr = ("localhost", data["shunt"]["event_listen_port"])
             self.listen_addr = ("localhost", data["GUI"]["listen_port"])
-            self.textEdit.append("config information loaded")
+            self.textEdit.append("Configuration file loaded, program ready.")
         except IOError:
             self.textEdit.append("config file not found")
             exit(1)
@@ -145,8 +146,6 @@ class GuiThread(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.txt_signal.emit(content)
             except socket.error:
                 gui.close()
-
-    # cancel按钮的有作用吗？另外，要设置成点击右上角关闭后程序退出（exit(0)） 处理完关闭就能解决cancel
 
     def connect_button_click(self):
         self.state.setText("Connected")
@@ -175,7 +174,6 @@ class GuiThread(QtWidgets.QMainWindow, Ui_MainWindow):
         return s
 
     def closeEvent(self, event):
-        print("close!!!")
-        #这里处理右上角关闭事件，exit（0）会无响应，用socket发给后台信息，后台进行break,exit都没有用
-
+        print("program exit now")
+        pass
 
