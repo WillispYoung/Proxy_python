@@ -175,5 +175,4 @@ class GuiThread(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def closeEvent(self, event):
         print("program exit now")
-        pass
 
