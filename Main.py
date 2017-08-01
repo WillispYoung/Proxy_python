@@ -2,7 +2,7 @@ import sys
 import Shunt
 import GUI
 from threading import Thread
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication
 
 if __name__ == '__main__':
     # start shunt
