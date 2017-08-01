@@ -88,7 +88,7 @@ class Shunt(object):
                             # then set to noVPN and eject it
                             if self.user_proxy[u][1] == "VPN":
                                 proxy = self.generate_socket(self.noVPN_addr)
-                                proxy.settimeout(10)
+                                proxy.settimeout(20)
                                 self.user_proxy[u][0] = proxy
                                 self.user_proxy[u][1] = "noVPN"
 
@@ -96,7 +96,7 @@ class Shunt(object):
                                 event_emitter.send(bytes("ejected: "+header, encoding="utf-8"))
                                 event_emitter.close()
 
-                                print("ejected:", header)
+                                # print("ejected:", header)
                                 Thread(target=self.proxy2user, args=(user, proxy)).start()
 
                     except UnicodeDecodeError:
@@ -128,15 +128,15 @@ class Shunt(object):
     def handle_user_connection(self, s):
         rp = self.generate_socket(self.VPN_addr)
         self.user_proxy[s] = [rp, "VPN"]
-        s.settimeout(10)
-        rp.settimeout(10)
+        s.settimeout(20)
+        rp.settimeout(20)
         Thread(target=self.user2proxy, args=(s, rp)).start()
         Thread(target=self.proxy2user, args=(s, rp)).start()
 
     def run_shunt(self):
         self.acceptor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.acceptor.bind(self.listen_addr)
-        self.acceptor.listen(20)
+        self.acceptor.listen(30)
         print("shunt program listening on port", self.listen_addr[1])
 
         while True:

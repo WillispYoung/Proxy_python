@@ -49,11 +49,15 @@ class Server(object):
 
     def handle_client(self, client):
         proxy = self.generate_proxy_socket()
-        client.settimeout(10)
-        proxy.settimeout(10)
+        client.settimeout(20)
+        proxy.settimeout(20)
 
-        threading.Thread(target=self.read_client, args=(client, proxy)).start()
-        threading.Thread(target=self.read_proxy, args=(client, proxy)).start()
+        t1 = threading.Thread(target=self.read_client, args=(client, proxy))
+        t2 = threading.Thread(target=self.read_proxy, args=(client, proxy))
+        t1.setDaemon(True)
+        t2.setDaemon(True)
+        t1.start()
+        t2.start()
 
     def run(self):
         while True:
