@@ -7,9 +7,10 @@ from threading import Thread
 if __name__ == '__main__':
     # start shunt
     s = Shunt.Shunt()
-    shunt_thread = Thread(target=s.run)
-    shunt_thread.setDaemon(True)
-    shunt_thread.start()
+    s.run()
+    # shunt_thread = Thread(target=s.run)
+    # shunt_thread.setDaemon(True)
+    # shunt_thread.start()
 
     # start gui and show MainWindow
     # app = QApplication(sys.argv)

@@ -128,8 +128,8 @@ class Shunt(object):
     def handle_user_connection(self, s):
         rp = self.generate_socket(self.VPN_addr)
         self.user_proxy[s] = [rp, "VPN"]
-        s.settimeout(20)
-        rp.settimeout(20)
+        s.settimeout(30)
+        rp.settimeout(30)
         Thread(target=self.user2proxy, args=(s, rp)).start()
         Thread(target=self.proxy2user, args=(s, rp)).start()
 
@@ -142,12 +142,10 @@ class Shunt(object):
         while True:
             try:
                 s, _ = self.acceptor.accept()
-                if self.shunt_status == "alive":
-                    self.handle_user_connection(s)
-                else:
-                    s.close()
-            except socket.error:
-                pass
+                self.handle_user_connection(s)
+            except socket.error as e:
+                print(e)
+                continue
 
     def handle_control_message(self, s):
         try:
@@ -163,13 +161,14 @@ class Shunt(object):
         s.close()
 
     def run(self):
-        Thread(target=self.run_shunt).start()
+        self.run_shunt()
+        # Thread(target=self.run_shunt).start()
 
-        self.event_listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.event_listener.bind(self.event_addr)
-        self.event_listener.listen(20)
-        print("event listener listening on port", self.event_addr[1])
-
-        while True:
-            s, addr = self.event_listener.accept()
-            self.handle_control_message(s)
+        # self.event_listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # self.event_listener.bind(self.event_addr)
+        # self.event_listener.listen(20)
+        # print("event listener listening on port", self.event_addr[1])
+        #
+        # while True:
+        #     s, addr = self.event_listener.accept()
+        #     self.handle_control_message(s)
