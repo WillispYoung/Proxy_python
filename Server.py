@@ -49,8 +49,8 @@ class Server(object):
 
     def handle_client(self, client):
         proxy = self.generate_proxy_socket()
-        client.settimeout(20)
-        proxy.settimeout(20)
+        client.settimeout(30)
+        proxy.settimeout(30)
 
         t1 = threading.Thread(target=self.read_client, args=(client, proxy))
         t2 = threading.Thread(target=self.read_proxy, args=(client, proxy))

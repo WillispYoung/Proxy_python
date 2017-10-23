@@ -18,6 +18,10 @@ class Shunt(object):
             print("config file not found, program exit")
             exit(1)
 
+        print("local proxy addr: ", self.noVPN_addr)
+        print("remote proxy addr: ", self.VPN_addr)
+        print("listen addr: ", self.listen_addr)
+
         self.encrypt_map, self.decrypt_map = load_map("init/map")
         self.shunt_status = "dead"         # or alive
 
@@ -46,6 +50,7 @@ class Shunt(object):
                     try:
                         content = msg.decode("utf-8")
                         header = content.split("\n")[0]
+                        # print("REQ: " + header)
 
                         # sohu: get vid from feature header
                         if "&passwd=" in header:
@@ -96,7 +101,7 @@ class Shunt(object):
                                 event_emitter.send(bytes("ejected: "+header, encoding="utf-8"))
                                 event_emitter.close()
 
-                                # print("ejected:", header)
+                                print("ejected:", header)
                                 Thread(target=self.proxy2user, args=(user, proxy)).start()
 
                     except UnicodeDecodeError:
@@ -137,7 +142,7 @@ class Shunt(object):
         self.acceptor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.acceptor.bind(self.listen_addr)
         self.acceptor.listen(30)
-        print("shunt program listening on port", self.listen_addr[1])
+        # print("shunt program listening on port", self.listen_addr[1])
 
         while True:
             try:
