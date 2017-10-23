@@ -64,6 +64,7 @@ class Server(object):
             (client, addr) = self.server_socket.accept()
             self.handle_client(client)
 
+
 if __name__ == "__main__":
     s = Server()
     s.run()
